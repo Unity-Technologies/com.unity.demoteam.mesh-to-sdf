@@ -1,0 +1,20 @@
+# For more information about the available options please visit: http://go/backstage (VPN required)
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: Unity-Technologies/mesh-to-sdf
+  name: mesh-to-sdf
+  description: "A real-time SDF generator. Use a Mesh or a dynamically deforming SkinnedMesh as input to generate a 3D SDF texture."
+  labels:
+    costcenter: "3020"
+  tags:
+    - planned-public
+  links:
+    - url: https://unity.slack.com/messages/C070XDMU0/
+      title: "#marketing-demo-team"
+      icon: chat
+spec:
+  type: unity-package
+  lifecycle: production
+  owner: unity-technologies/unity-demo-team
