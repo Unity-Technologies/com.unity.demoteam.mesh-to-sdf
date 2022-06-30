@@ -1,0 +1,274 @@
+﻿#pragma kernel Initialize
+#pragma kernel SplatTriangleDistancesUnsigned SplatTriangleDistances=SplatTriangleDistancesUnsigned
+#pragma kernel SplatTriangleDistancesSigned SplatTriangleDistances=SplatTriangleDistancesSigned SIGNED
+#pragma kernel Finalize
+#pragma kernel LinearFloodStep
+#pragma kernel LinearFloodStepUltraQuality LinearFloodStep=LinearFloodStepUltraQuality FLOOD_STEP_ULTRA_QUALITY
+#pragma kernel LinearFloodFinalize
+#pragma kernel JumpFloodInitialize
+#pragma kernel JumpFloodStep
+#pragma kernel JumpFloodStepUltraQuality JumpFloodStep=JumpFloodStepUltraQuality FLOOD_STEP_ULTRA_QUALITY
+#pragma kernel JumpFloodFinalize
+#pragma kernel BufferToTexture
+
+int4 _VoxelResolution; // w = x * y * z
+float _MaxDistance;
+float _Base;
+float4 _FloodParams;
+
+#define MAX_DISTANCE _FloodParams.x
+#define BASE_DISTANCE _FloodParams.y
+#define INITIAL_DISTANCE _FloodParams.z
+
+#define THREAD_GROUP_SIZE 64
+
+float4x4 _WorldToLocal;
+
+uint GetIndex(ByteAddressBuffer indexBuffer, uint i)
+{
+	// 2 byte indices, Load() grabs 4 bytes at a time (4 byte aligned) so need to do some unpacking
+	uint entryIndex = i >> 1u;
+	uint entryOffset = i & 1u;
+	uint read = indexBuffer.Load(entryIndex << 2);
+	return entryOffset == 1u ? ((read >> 16) & 0xffff) : read & 0xffff;
+}
+
+float _VertexBufferStride;
+float _VertexBufferPosAttributeOffset;
+
+float3 GetPos(ByteAddressBuffer vertexBuffer, uint i)
+{
+    return asfloat(vertexBuffer.Load3(i * _VertexBufferStride + _VertexBufferPosAttributeOffset));
+}
+
+#include "../_External/TressFXSDF.hlsl"
+
+RWTexture3D<half> _SDF;
+StructuredBuffer<float> _SDFBuffer;
+RWStructuredBuffer<float> _SDFBufferRW;
+
+StructuredBuffer<int> _JumpBuffer;
+RWStructuredBuffer<int> _JumpBufferRW;
+
+int3 GetVoxelCoords(int voxelIndex)
+{
+    return GetLocalCellPositionFromIndex(voxelIndex, _VoxelResolution.xyz);
+}
+
+int GetVoxelIndex(int3 voxelCoords)
+{
+    return GetSdfCellIndex(voxelCoords);
+}
+
+float GetVoxel(int voxelIndex)
+{
+    return _SDFBuffer[voxelIndex];
+}
+
+float GetVoxel(int3 voxelCoords)
+{
+    voxelCoords = clamp(voxelCoords, 0, _VoxelResolution.xyz - 1);
+    return GetVoxel(GetVoxelIndex(voxelCoords));
+}
+
+int GetVoxelJump(int voxelIndex)
+{
+    return _JumpBuffer[voxelIndex];
+}
+
+int GetVoxelJump(int3 voxelCoords)
+{
+    voxelCoords = clamp(voxelCoords, 0, _VoxelResolution.xyz - 1);
+    return GetVoxelJump(GetVoxelIndex(voxelCoords));
+}
+
+// One thread per cell
+[numthreads(THREAD_GROUP_SIZE, 1, 1)]
+void BufferToTexture(uint GIndex : SV_GroupIndex, uint3 GId : SV_GroupID, uint3 DTid : SV_DispatchThreadID)
+{
+    int voxelIndex = GId.x * THREAD_GROUP_SIZE + GIndex;
+    if(voxelIndex >= _VoxelResolution.w)
+        return;
+
+    int3 center = GetVoxelCoords(voxelIndex);
+
+    _SDF[center] = GetVoxel(voxelIndex);
+}
+
+float MinDist(float currentDist, float adjacentDist, float step)
+{
+    // Decode if a value is not a seed value.
+    if (adjacentDist > MAX_DISTANCE)
+        adjacentDist -= BASE_DISTANCE;
+
+    // We're one more cell away now
+    step *= g_CellSize;
+    if (adjacentDist < 0.0)
+        step *= -1;
+    adjacentDist += step;
+    
+    return currentDist < 0 ? max(adjacentDist, currentDist) : min(adjacentDist, currentDist);
+}
+
+#define SQRT_2 1.41421356
+#define SQRT_3 1.73205081
+
+// One thread per cell
+[numthreads(THREAD_GROUP_SIZE, 1, 1)]
+void LinearFloodStep(uint GIndex : SV_GroupIndex, uint3 GId : SV_GroupID, uint3 DTid : SV_DispatchThreadID)
+{
+    int voxelIndex = GId.x * THREAD_GROUP_SIZE + GIndex;
+    if(voxelIndex >= _VoxelResolution.w)
+        return;
+
+    float centerValue = GetVoxel(voxelIndex);
+
+    // Values set by the initial triangle splatting are based around 0, fit within [-MAX_DISTANCE, MAX_DISTANCE] and are used as reference/seeds - 
+    // but only if they lie close enough to the surface. The ones above ~one voxel away are no longer treated as seeds and overwritten in flooding,
+    // to avoid artifacts at the edges of the splatting aabbs.
+    // Values calculated as part of the flooding are based around BASE_DISTANCE instead, as encoding to identify them as non-seed values.
+    // TODO: that encoding might no longer be needed, since we treat everything away from the surface (and != INITIAL_DISTANCE) as non-seed anyway.
+
+    if (abs(centerValue) < g_CellSize * SQRT_3)
+    {
+        _SDFBufferRW[voxelIndex] = centerValue;
+        return;
+    }
+
+    int3 center = GetVoxelCoords(voxelIndex);
+    int3 offset = int3(-1, 0, 1);
+
+    float minDist = centerValue;
+    // 6 orthogonally adjacent voxels
+    minDist = MinDist(minDist, GetVoxel(center + offset.zyy), 1);
+    minDist = MinDist(minDist, GetVoxel(center + offset.yzy), 1);
+    minDist = MinDist(minDist, GetVoxel(center + offset.yyz), 1);
+    minDist = MinDist(minDist, GetVoxel(center + offset.xyy), 1);
+    minDist = MinDist(minDist, GetVoxel(center + offset.yxy), 1);
+    minDist = MinDist(minDist, GetVoxel(center + offset.yyx), 1);
+
+#ifdef FLOOD_STEP_ULTRA_QUALITY
+    // 20 diagonally adjacent voxels
+    minDist = MinDist(minDist, GetVoxel(center + offset.xxy), SQRT_2);
+    minDist = MinDist(minDist, GetVoxel(center + offset.xzy), SQRT_2);
+    minDist = MinDist(minDist, GetVoxel(center + offset.zzy), SQRT_2);
+    minDist = MinDist(minDist, GetVoxel(center + offset.zxy), SQRT_2);
+
+    minDist = MinDist(minDist, GetVoxel(center + offset.xyx), SQRT_2);
+    minDist = MinDist(minDist, GetVoxel(center + offset.xyz), SQRT_2);
+    minDist = MinDist(minDist, GetVoxel(center + offset.zyz), SQRT_2);
+    minDist = MinDist(minDist, GetVoxel(center + offset.zyx), SQRT_2);
+
+    minDist = MinDist(minDist, GetVoxel(center + offset.yxx), SQRT_2);
+    minDist = MinDist(minDist, GetVoxel(center + offset.yxz), SQRT_2);
+    minDist = MinDist(minDist, GetVoxel(center + offset.yzz), SQRT_2);
+    minDist = MinDist(minDist, GetVoxel(center + offset.yzx), SQRT_2);
+
+    minDist = MinDist(minDist, GetVoxel(center + offset.xxx), SQRT_3);
+    minDist = MinDist(minDist, GetVoxel(center + offset.xxz), SQRT_3);
+    minDist = MinDist(minDist, GetVoxel(center + offset.xzx), SQRT_3);
+    minDist = MinDist(minDist, GetVoxel(center + offset.xzz), SQRT_3);
+    minDist = MinDist(minDist, GetVoxel(center + offset.zxx), SQRT_3);
+    minDist = MinDist(minDist, GetVoxel(center + offset.zxz), SQRT_3);
+    minDist = MinDist(minDist, GetVoxel(center + offset.zzx), SQRT_3);
+    minDist = MinDist(minDist, GetVoxel(center + offset.zzz), SQRT_3);
+#endif
+
+    if(minDist != INITIAL_DISTANCE)
+        // Encode to be BASE_DISTANCE -based, as this is a non-seed value.
+        minDist = minDist + BASE_DISTANCE;
+
+    _SDFBufferRW[voxelIndex] = minDist;
+}
+
+// One thread per cell
+[numthreads(THREAD_GROUP_SIZE, 1, 1)]
+void LinearFloodFinalize(uint GIndex : SV_GroupIndex, uint3 GId : SV_GroupID, uint3 DTid : SV_DispatchThreadID)
+{
+    int voxelIndex = GId.x * THREAD_GROUP_SIZE + GIndex;
+    if(voxelIndex >= _VoxelResolution.w)
+        return;
+
+    float centerValue = GetVoxel(voxelIndex);
+
+    if (centerValue > MAX_DISTANCE)
+        centerValue -= BASE_DISTANCE;
+
+    _SDFBufferRW[voxelIndex] = centerValue;
+}
+
+
+
+// One thread per cell
+[numthreads(THREAD_GROUP_SIZE, 1, 1)]
+void JumpFloodInitialize(uint GIndex : SV_GroupIndex, uint3 GId : SV_GroupID, uint3 DTid : SV_DispatchThreadID)
+{
+    int voxelIndex = GId.x * THREAD_GROUP_SIZE + GIndex;
+    if(voxelIndex >= _VoxelResolution.w)
+        return;
+
+    float distance = GetVoxel(voxelIndex);
+    // Even though more cells are initialized, we want to treat as seeds only the ones
+    // within one voxel of the surface. Otherwise the distance estimate is not very smooth
+    // as it sees the chunky bounding boxes of bigger triangles.
+    _JumpBufferRW[voxelIndex] = distance > g_CellSize * SQRT_3 ? 0 : voxelIndex;
+}
+
+void JumpSample(int3 centerCoord, int3 offset, inout float bestDistance, inout int bestIndex)
+{
+    int3 sampleCoord = centerCoord + offset;
+    int voxelSampleIndex = GetVoxelJump(sampleCoord);
+    int3 voxelSampleCoord = GetVoxelCoords(voxelSampleIndex);
+    float dist = length(centerCoord - voxelSampleCoord);
+    if (voxelSampleIndex != 0 && dist < bestDistance)
+    {
+        bestDistance = dist;
+        bestIndex = voxelSampleIndex;
+    }
+}
+
+int _JumpOffset;
+int3 _JumpOffsetInterleaved;
+
+// One thread per cell
+[numthreads(THREAD_GROUP_SIZE, 1, 1)]
+void JumpFloodStep(uint GIndex : SV_GroupIndex, uint3 GId : SV_GroupID, uint3 DTid : SV_DispatchThreadID)
+{
+    int voxelIndex = GId.x * THREAD_GROUP_SIZE + GIndex;
+    if(voxelIndex >= _VoxelResolution.w)
+        return;
+
+    int3 centerCoord = GetVoxelCoords(voxelIndex);
+    float bestDistance = 100000;
+    int bestIndex = 0;
+
+#if FLOOD_STEP_ULTRA_QUALITY
+    for(int z = -1; z <= 1; ++z)
+        for(int y = -1; y <= 1; ++y)
+            for(int x = -1; x <= 1; ++x)
+                JumpSample(centerCoord, int3(x, y, z) * _JumpOffset, bestDistance, bestIndex);
+#else
+    JumpSample(centerCoord,  0,                      bestDistance, bestIndex);
+    JumpSample(centerCoord,  _JumpOffsetInterleaved, bestDistance, bestIndex);
+    JumpSample(centerCoord, -_JumpOffsetInterleaved, bestDistance, bestIndex);
+#endif
+
+    _JumpBufferRW[voxelIndex] = bestIndex;
+}
+
+// One thread per cell
+[numthreads(THREAD_GROUP_SIZE, 1, 1)]
+void JumpFloodFinalize(uint GIndex : SV_GroupIndex, uint3 GId : SV_GroupID, uint3 DTid : SV_DispatchThreadID)
+{
+    int voxelIndex = GId.x * THREAD_GROUP_SIZE + GIndex;
+    if(voxelIndex >= _VoxelResolution.w)
+        return;
+
+    int closestSeedVoxelIndex = GetVoxelJump(voxelIndex);
+    float distanceToClosestSeedVoxel = length(GetVoxelCoords(voxelIndex) - GetVoxelCoords(closestSeedVoxelIndex)) * g_CellSize;
+    float distanceOfClosestSeedVoxelToSurface = GetVoxel(closestSeedVoxelIndex);
+
+    // Assuming unsigned distance, since signed has issues with jump flooding. With signed do
+    // distanceToClosestSeedVoxel * sign(distanceOfClosestSeedVoxelToSurface) + distanceOfClosestSeedVoxelToSurface
+    _SDFBufferRW[voxelIndex] = distanceToClosestSeedVoxel + distanceOfClosestSeedVoxelToSurface;
+}

@@ -1,0 +1,15 @@
+{
+    "name": "Unity.DemoTeam.MeshToSDF",
+    "references": [
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.DemoTeam.SDFTexture"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": []
+}
