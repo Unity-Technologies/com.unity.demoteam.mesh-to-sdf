@@ -1,8 +1,6 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Assertions;
-using Unity.Profiling;
 
 [ExecuteAlways]
 public class MeshToSDF : MonoBehaviour
@@ -70,9 +68,9 @@ If you need signed distance or just need a limited shell around your surface, us
     GraphicsBuffer m_IndexBuffer = null;
     int m_VertexBufferStride;
     int m_VertexBufferPosAttributeOffset;
+    CommandBuffer m_CommandBuffer = null;
 
     const int kThreadCount = 64;
-    int threadGroupCountVoxels;
     int m_ThreadGroupCountTriangles;
 
     static class Uniforms
@@ -145,6 +143,24 @@ If you need signed distance or just need a limited shell around your surface, us
 
     void LateUpdate()
     {
+        // TODO: proper scheduling
+
+        if (m_CommandBuffer == null)
+        {
+            m_CommandBuffer = new CommandBuffer();
+            m_CommandBuffer.name = Labels.MeshToSDF;
+        }
+
+        RenderSDF(m_CommandBuffer);
+
+        Graphics.ExecuteCommandBuffer(m_CommandBuffer);
+
+        ReleaseGraphicsBuffer(ref m_VertexBuffer);
+        ReleaseGraphicsBuffer(ref m_IndexBuffer);
+    }
+
+    void RenderSDF(CommandBuffer cmd)
+    {
         if (m_SDFTexture == null || m_SDFTexture.mode == SDFTexture.Mode.None)
             return;
 
@@ -175,7 +191,7 @@ If you need signed distance or just need a limited shell around your surface, us
             return;
         }
 
-        CommandBuffer cmd = CommandBufferPool.Get(Labels.MeshToSDF);
+        cmd.Clear();
         cmd.SetComputeVectorParam(m_Compute, Uniforms.g_Origin, voxelBounds.center - voxelBounds.extents);
         cmd.SetComputeFloatParam(m_Compute, Uniforms.g_CellSize, voxelSize);
         cmd.SetComputeIntParam(m_Compute, Uniforms.g_NumCellsX, voxelResolution.x);
@@ -304,11 +320,6 @@ If you need signed distance or just need a limited shell around your surface, us
         cmd.SetComputeTextureParam(m_Compute, kernel, Uniforms._SDF, m_SDFTexture.sdf);
         cmd.DispatchCompute(m_Compute, kernel, threadGroupCountVoxels, 1, 1);
 		cmd.EndSample(Labels.BufferToTexture);
-        Graphics.ExecuteCommandBuffer(cmd);
-        CommandBufferPool.Release(cmd);
-
-        ReleaseGraphicsBuffer(ref m_VertexBuffer);
-        ReleaseGraphicsBuffer(ref m_IndexBuffer);
     }
 
     bool LoadMeshToComputeBuffers()
