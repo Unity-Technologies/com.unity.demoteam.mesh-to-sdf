@@ -80,16 +80,6 @@ public class SDFTextureEditor : Editor
         if (s_Material == null)
             s_Material = new Material(Shader.Find("Hidden/SDFTexture"));
 
-        if (s_Props == null)
-            s_Props = new MaterialPropertyBlock();
-
-        s_Props.Clear();
-        s_Props.SetFloat(Uniforms._Z, s_Slice);
-        s_Props.SetInt(Uniforms._Axis, (int)s_Axis);
-        s_Props.SetVector("_VoxelResolution", new Vector4(voxelResolution.x, voxelResolution.y, voxelResolution.z));
-        s_Props.SetFloat(Uniforms._DistanceScale, distanceScale);
-        s_Props.SetTexture("_SDF", sdf);
-
         Vector3 dir = Vector3.forward * voxelBounds.size.z;
         Quaternion rot = Quaternion.identity;
         switch (s_Axis)
@@ -101,7 +91,29 @@ public class SDFTextureEditor : Editor
         matrix *= Matrix4x4.Translate(dir * (s_Slice - 0.5f));
         matrix *= Matrix4x4.Scale(voxelBounds.size);
         matrix *= Matrix4x4.Rotate(rot);
+
+#if USING_HDRP
+        if (s_Props == null)
+            s_Props = new MaterialPropertyBlock();
+
+        s_Props.Clear();
+        s_Props.SetFloat(Uniforms._Z, s_Slice);
+        s_Props.SetInt(Uniforms._Axis, (int)s_Axis);
+        s_Props.SetVector("_VoxelResolution", new Vector4(voxelResolution.x, voxelResolution.y, voxelResolution.z));
+        s_Props.SetFloat(Uniforms._DistanceScale, distanceScale);
+        s_Props.SetTexture("_SDF", sdf);
+
         Graphics.DrawMesh(s_Quad, matrix, s_Material, layer:0, camera, submeshIndex:0, properties:s_Props);
+#else // URP and Built-In RP
+        s_Material.SetFloat(Uniforms._Z, s_Slice);
+        s_Material.SetInt(Uniforms._Axis, (int)s_Axis);
+        s_Material.SetVector("_VoxelResolution", new Vector4(voxelResolution.x, voxelResolution.y, voxelResolution.z));
+        s_Material.SetFloat(Uniforms._DistanceScale, distanceScale);
+        s_Material.SetTexture("_SDF", sdf);
+
+        s_Material.SetPass(0);
+        Graphics.DrawMeshNow(s_Quad, matrix);
+#endif
     }
 
     static void OnSceneGUI(UnityEditor.SceneView sceneview)
@@ -116,16 +128,13 @@ public class SDFTextureEditor : Editor
         Handles.matrix = matrix;
         Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
 
+        if (s_SDFTexture.sdf != null && voxelBounds.extents != Vector3.zero)
+        {
+            DoSDFSlice(matrix, sceneview.camera, s_SDFTexture.voxelResolution, voxelBounds, distanceScale:1, s_SDFTexture.sdf);
+            DoHandles(voxelBounds);
+        }
+
         DoBounds(s_SDFTexture);
-
-        if (s_SDFTexture.sdf == null)
-            return;
-
-        if (voxelBounds.extents == Vector3.zero)
-            return;
-
-        DoSDFSlice(matrix, sceneview.camera, s_SDFTexture.voxelResolution, voxelBounds, distanceScale:1, s_SDFTexture.sdf);
-        DoHandles(voxelBounds);
     }
 
     public override void OnInspectorGUI()
