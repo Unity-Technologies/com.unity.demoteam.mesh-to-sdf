@@ -81,7 +81,8 @@ If you need signed distance or just need a limited shell around your surface, us
         internal static int _JumpBuffer = Shader.PropertyToID("_JumpBuffer");
         internal static int _JumpBufferRW = Shader.PropertyToID("_JumpBufferRW");
         internal static int _VoxelResolution = Shader.PropertyToID("_VoxelResolution");
-        internal static int _FloodParams = Shader.PropertyToID("_FloodParams");
+        internal static int _MaxDistance = Shader.PropertyToID("_MaxDistance");
+        internal static int INITIAL_DISTANCE = Shader.PropertyToID("INITIAL_DISTANCE");
         internal static int _WorldToLocal = Shader.PropertyToID("_WorldToLocal");
         internal static int g_SignedDistanceField = Shader.PropertyToID("g_SignedDistanceField");
         internal static int g_NumCellsX = Shader.PropertyToID("g_NumCellsX");
@@ -199,11 +200,9 @@ If you need signed distance or just need a limited shell around your surface, us
         cmd.SetComputeIntParam(m_Compute, Uniforms.g_NumCellsZ, voxelResolution.z);
         int[] voxelResolutionArray = {voxelResolution.x, voxelResolution.y, voxelResolution.z, voxelCount};
         cmd.SetComputeIntParams(m_Compute, Uniforms._VoxelResolution, voxelResolutionArray);
-        var floodParams = Vector4.zero;
-        floodParams.x = voxelBounds.size.magnitude; // MAX_DISTANCE
-        floodParams.y = floodParams.x * 2.0f; // BASE_DISTANCE
-        floodParams.z = floodParams.y * 2.0f; // INITIAL_DISTANCE
-        cmd.SetComputeVectorParam(m_Compute, Uniforms._FloodParams, floodParams);
+        float maxDistance = voxelBounds.size.magnitude;
+        cmd.SetComputeFloatParam(m_Compute, Uniforms._MaxDistance, maxDistance);
+        cmd.SetComputeFloatParam(m_Compute, Uniforms.INITIAL_DISTANCE, maxDistance * 1.01f);
         cmd.SetComputeMatrixParam(m_Compute, Uniforms._WorldToLocal, GetMeshToSDFMatrix());
 
         // Last FloodStep should finish writing into m_SDFBufferBis, so that we always end up

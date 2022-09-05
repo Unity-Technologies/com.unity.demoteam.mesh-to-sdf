@@ -13,16 +13,10 @@
 
 int4 _VoxelResolution; // w = x * y * z
 float _MaxDistance;
-float _Base;
-float4 _FloodParams;
-
-#define MAX_DISTANCE _FloodParams.x
-#define BASE_DISTANCE _FloodParams.y
-#define INITIAL_DISTANCE _FloodParams.z
+float INITIAL_DISTANCE;
+float4x4 _WorldToLocal;
 
 #define THREAD_GROUP_SIZE 64
-
-float4x4 _WorldToLocal;
 
 uint GetIndex(ByteAddressBuffer indexBuffer, uint i)
 {
@@ -97,15 +91,18 @@ void BufferToTexture(uint GIndex : SV_GroupIndex, uint3 GId : SV_GroupID, uint3 
 
 float MinDist(float currentDist, float adjacentDist, float step)
 {
-    // Decode if a value is not a seed value.
-    if (adjacentDist > MAX_DISTANCE)
-        adjacentDist -= BASE_DISTANCE;
-
-    // We're one more cell away now
     step *= g_CellSize;
     if (adjacentDist < 0.0)
         step *= -1;
+
+    // We're one more cell away now
     adjacentDist += step;
+
+    // Just overwrite invalid values
+    if (adjacentDist > _MaxDistance)
+        return currentDist;
+    if (currentDist > _MaxDistance)
+        return adjacentDist;
     
     return currentDist < 0 ? max(adjacentDist, currentDist) : min(adjacentDist, currentDist);
 }
@@ -123,12 +120,13 @@ void LinearFloodStep(uint GIndex : SV_GroupIndex, uint3 GId : SV_GroupID, uint3 
 
     float centerValue = GetVoxel(voxelIndex);
 
-    // Values set by the initial triangle splatting are based around 0, fit within [-MAX_DISTANCE, MAX_DISTANCE] and are used as reference/seeds - 
+    // Values set by the initial triangle splatting are based around 0, fit within [-_MaxDistance, _MaxDistance] and are used as reference/seeds - 
     // but only if they lie close enough to the surface. The ones above ~one voxel away are no longer treated as seeds and overwritten in flooding,
     // to avoid artifacts at the edges of the splatting aabbs.
-    // Values calculated as part of the flooding are based around BASE_DISTANCE instead, as encoding to identify them as non-seed values.
-    // TODO: that encoding might no longer be needed, since we treat everything away from the surface (and != INITIAL_DISTANCE) as non-seed anyway.
+    // Values above _MaxDistance hasn't been written by the initial triangle splatting, just by the initialization pass, and should be overwritten
+    // by any valid neighbour (+step distance).
 
+    // Don't touch voxels with distance less than one voxel diagonal, treat them as seed values
     if (abs(centerValue) < g_CellSize * SQRT_3)
     {
         _SDFBufferRW[voxelIndex] = centerValue;
@@ -174,10 +172,6 @@ void LinearFloodStep(uint GIndex : SV_GroupIndex, uint3 GId : SV_GroupID, uint3 
     minDist = MinDist(minDist, GetVoxel(center + offset.zzz), SQRT_3);
 #endif
 
-    if(minDist != INITIAL_DISTANCE)
-        // Encode to be BASE_DISTANCE -based, as this is a non-seed value.
-        minDist = minDist + BASE_DISTANCE;
-
     _SDFBufferRW[voxelIndex] = minDist;
 }
 
@@ -190,9 +184,6 @@ void LinearFloodFinalize(uint GIndex : SV_GroupIndex, uint3 GId : SV_GroupID, ui
         return;
 
     float centerValue = GetVoxel(voxelIndex);
-
-    if (centerValue > MAX_DISTANCE)
-        centerValue -= BASE_DISTANCE;
 
     _SDFBufferRW[voxelIndex] = centerValue;
 }
