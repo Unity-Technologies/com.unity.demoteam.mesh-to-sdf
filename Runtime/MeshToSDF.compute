@@ -4,7 +4,6 @@
 #pragma kernel Finalize
 #pragma kernel LinearFloodStep
 #pragma kernel LinearFloodStepUltraQuality LinearFloodStep=LinearFloodStepUltraQuality FLOOD_STEP_ULTRA_QUALITY
-#pragma kernel LinearFloodFinalize
 #pragma kernel JumpFloodInitialize
 #pragma kernel JumpFloodStep
 #pragma kernel JumpFloodStepUltraQuality JumpFloodStep=JumpFloodStepUltraQuality FLOOD_STEP_ULTRA_QUALITY
@@ -176,21 +175,6 @@ void LinearFloodStep(uint GIndex : SV_GroupIndex, uint3 GId : SV_GroupID, uint3 
 
     _SDFBufferRW[voxelIndex] = minDist;
 }
-
-// One thread per cell
-[numthreads(THREAD_GROUP_SIZE, 1, 1)]
-void LinearFloodFinalize(uint GIndex : SV_GroupIndex, uint3 GId : SV_GroupID, uint3 DTid : SV_DispatchThreadID)
-{
-    int voxelIndex = GId.x * THREAD_GROUP_SIZE + GIndex;
-    if(voxelIndex >= _VoxelResolution.w)
-        return;
-
-    float centerValue = GetVoxel(voxelIndex);
-
-    _SDFBufferRW[voxelIndex] = centerValue;
-}
-
-
 
 // One thread per cell
 [numthreads(THREAD_GROUP_SIZE, 1, 1)]

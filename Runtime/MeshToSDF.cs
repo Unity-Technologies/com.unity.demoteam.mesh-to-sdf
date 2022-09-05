@@ -57,7 +57,6 @@ If you need signed distance or just need a limited shell around your surface, us
     int m_FinalizeKernel = -1;
     int m_LinearFloodStepKernel = -1;
     int m_LinearFloodStepUltraQualityKernel = -1;
-    int m_LinearFinalizeFloodKernel = -1;
     int m_JumpFloodInitialize = -1;
     int m_JumpFloodStep = -1;
     int m_JumpFloodStepUltraQuality = -1;
@@ -108,7 +107,6 @@ If you need signed distance or just need a limited shell around your surface, us
         internal static string Finalize = "Finalize";
         internal static string LinearFloodStep = "LinearFloodStep";
         internal static string LinearFloodStepUltraQuality = "LinearFloodStepUltraQuality";
-        internal static string LinearFloodFinalize = "LinearFloodFinalize";
         internal static string JumpFloodInitialize = "JumpFloodInitialize";
         internal static string JumpFloodStep = "JumpFloodStep";
         internal static string JumpFloodStepUltraQuality = "JumpFloodStepUltraQuality";
@@ -131,7 +129,6 @@ If you need signed distance or just need a limited shell around your surface, us
         m_FinalizeKernel = m_Compute.FindKernel(Labels.Finalize);
         m_LinearFloodStepKernel = m_Compute.FindKernel(Labels.LinearFloodStep);
         m_LinearFloodStepUltraQualityKernel = m_Compute.FindKernel(Labels.LinearFloodStepUltraQuality);
-        m_LinearFinalizeFloodKernel = m_Compute.FindKernel(Labels.LinearFloodFinalize);
         m_JumpFloodInitialize = m_Compute.FindKernel(Labels.JumpFloodInitialize);
         m_JumpFloodStep = m_Compute.FindKernel(Labels.JumpFloodStep);
         m_JumpFloodStepUltraQuality = m_Compute.FindKernel(Labels.JumpFloodStepUltraQuality);
@@ -209,7 +206,7 @@ If you need signed distance or just need a limited shell around your surface, us
         // writing to m_SDFBuffer in FinalizeFlood
         ComputeBuffer bufferPing = m_SDFBufferBis;
         ComputeBuffer bufferPong = m_SDFBuffer;
-        if (m_FloodFillIterations%2 == 1 && m_FloodMode == FloodMode.Linear)
+        if (m_FloodFillIterations%2 == 0 && m_FloodMode == FloodMode.Linear)
         {
             bufferPing = m_SDFBuffer;
             bufferPong = m_SDFBufferBis;
@@ -250,14 +247,6 @@ If you need signed distance or just need a limited shell around your surface, us
                 cmd.DispatchCompute(m_Compute, kernel, threadGroupCountVoxels, 1, 1);
             }
             cmd.EndSample(Labels.LinearFloodStep);
-
-            cmd.BeginSample(Labels.LinearFloodFinalize);
-            kernel = m_LinearFinalizeFloodKernel;
-            // Final FloodStep output sits in m_SDFBufferBis
-            cmd.SetComputeBufferParam(m_Compute, kernel, Uniforms._SDFBuffer, m_SDFBufferBis);
-            cmd.SetComputeBufferParam(m_Compute, kernel, Uniforms._SDFBufferRW, m_SDFBuffer);
-            cmd.DispatchCompute(m_Compute, kernel, threadGroupCountVoxels, 1, 1);
-            cmd.EndSample(Labels.LinearFloodFinalize);
         }
         else
         {
