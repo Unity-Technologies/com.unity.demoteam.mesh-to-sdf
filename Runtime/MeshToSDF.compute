@@ -91,7 +91,6 @@ void BufferToTexture(uint GIndex : SV_GroupIndex, uint3 GId : SV_GroupID, uint3 
 
 float MinDist(float currentDist, float adjacentDist, float step)
 {
-    step *= g_CellSize;
     if (adjacentDist < 0.0)
         step *= -1;
 
@@ -138,38 +137,41 @@ void LinearFloodStep(uint GIndex : SV_GroupIndex, uint3 GId : SV_GroupID, uint3 
 
     float minDist = centerValue;
     // 6 orthogonally adjacent voxels
-    minDist = MinDist(minDist, GetVoxel(center + offset.zyy), 1);
-    minDist = MinDist(minDist, GetVoxel(center + offset.yzy), 1);
-    minDist = MinDist(minDist, GetVoxel(center + offset.yyz), 1);
-    minDist = MinDist(minDist, GetVoxel(center + offset.xyy), 1);
-    minDist = MinDist(minDist, GetVoxel(center + offset.yxy), 1);
-    minDist = MinDist(minDist, GetVoxel(center + offset.yyx), 1);
+    float step = g_CellSize;
+    minDist = MinDist(minDist, GetVoxel(center + offset.zyy), step);
+    minDist = MinDist(minDist, GetVoxel(center + offset.yzy), step);
+    minDist = MinDist(minDist, GetVoxel(center + offset.yyz), step);
+    minDist = MinDist(minDist, GetVoxel(center + offset.xyy), step);
+    minDist = MinDist(minDist, GetVoxel(center + offset.yxy), step);
+    minDist = MinDist(minDist, GetVoxel(center + offset.yyx), step);
 
 #ifdef FLOOD_STEP_ULTRA_QUALITY
     // 20 diagonally adjacent voxels
-    minDist = MinDist(minDist, GetVoxel(center + offset.xxy), SQRT_2);
-    minDist = MinDist(minDist, GetVoxel(center + offset.xzy), SQRT_2);
-    minDist = MinDist(minDist, GetVoxel(center + offset.zzy), SQRT_2);
-    minDist = MinDist(minDist, GetVoxel(center + offset.zxy), SQRT_2);
+    step = SQRT_2 * g_CellSize;
+    minDist = MinDist(minDist, GetVoxel(center + offset.xxy), step);
+    minDist = MinDist(minDist, GetVoxel(center + offset.xzy), step);
+    minDist = MinDist(minDist, GetVoxel(center + offset.zzy), step);
+    minDist = MinDist(minDist, GetVoxel(center + offset.zxy), step);
 
-    minDist = MinDist(minDist, GetVoxel(center + offset.xyx), SQRT_2);
-    minDist = MinDist(minDist, GetVoxel(center + offset.xyz), SQRT_2);
-    minDist = MinDist(minDist, GetVoxel(center + offset.zyz), SQRT_2);
-    minDist = MinDist(minDist, GetVoxel(center + offset.zyx), SQRT_2);
+    minDist = MinDist(minDist, GetVoxel(center + offset.xyx), step);
+    minDist = MinDist(minDist, GetVoxel(center + offset.xyz), step);
+    minDist = MinDist(minDist, GetVoxel(center + offset.zyz), step);
+    minDist = MinDist(minDist, GetVoxel(center + offset.zyx), step);
 
-    minDist = MinDist(minDist, GetVoxel(center + offset.yxx), SQRT_2);
-    minDist = MinDist(minDist, GetVoxel(center + offset.yxz), SQRT_2);
-    minDist = MinDist(minDist, GetVoxel(center + offset.yzz), SQRT_2);
-    minDist = MinDist(minDist, GetVoxel(center + offset.yzx), SQRT_2);
+    minDist = MinDist(minDist, GetVoxel(center + offset.yxx), step);
+    minDist = MinDist(minDist, GetVoxel(center + offset.yxz), step);
+    minDist = MinDist(minDist, GetVoxel(center + offset.yzz), step);
+    minDist = MinDist(minDist, GetVoxel(center + offset.yzx), step);
 
-    minDist = MinDist(minDist, GetVoxel(center + offset.xxx), SQRT_3);
-    minDist = MinDist(minDist, GetVoxel(center + offset.xxz), SQRT_3);
-    minDist = MinDist(minDist, GetVoxel(center + offset.xzx), SQRT_3);
-    minDist = MinDist(minDist, GetVoxel(center + offset.xzz), SQRT_3);
-    minDist = MinDist(minDist, GetVoxel(center + offset.zxx), SQRT_3);
-    minDist = MinDist(minDist, GetVoxel(center + offset.zxz), SQRT_3);
-    minDist = MinDist(minDist, GetVoxel(center + offset.zzx), SQRT_3);
-    minDist = MinDist(minDist, GetVoxel(center + offset.zzz), SQRT_3);
+    step = SQRT_3 * g_CellSize;
+    minDist = MinDist(minDist, GetVoxel(center + offset.xxx), step);
+    minDist = MinDist(minDist, GetVoxel(center + offset.xxz), step);
+    minDist = MinDist(minDist, GetVoxel(center + offset.xzx), step);
+    minDist = MinDist(minDist, GetVoxel(center + offset.xzz), step);
+    minDist = MinDist(minDist, GetVoxel(center + offset.zxx), step);
+    minDist = MinDist(minDist, GetVoxel(center + offset.zxz), step);
+    minDist = MinDist(minDist, GetVoxel(center + offset.zzx), step);
+    minDist = MinDist(minDist, GetVoxel(center + offset.zzz), step);
 #endif
 
     _SDFBufferRW[voxelIndex] = minDist;
