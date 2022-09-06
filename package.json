@@ -5,5 +5,12 @@
 	"unity": "2021.2",
 	"description": "A real-time SDF generator. Use a Mesh or a dynamically deforming SkinnedMesh as input to generate a 3D SDF texture.",
 	"dependencies": {
-	}
+	},
+	"samples": [
+		{
+		  "displayName": "MeshToSDF sample",
+		  "description": "A simple scene with MeshToSDF generating an SDF for a rotating static mesh. Scene variants for HDRP, URP, and Built-in RP.",
+		  "path": "Samples~/MeshToSDF-sample"
+		}
+	  ]
 }
