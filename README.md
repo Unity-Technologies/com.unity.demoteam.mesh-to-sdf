@@ -3,7 +3,7 @@
 A real-time Signed Distance Field generator. Use a Mesh or a dynamically deforming SkinnedMesh as input to generate a 3D SDF texture.
 
 \
-![mesh-to-sdf](https://user-images.githubusercontent.com/6276154/176790544-65fe89fe-bf89-425d-8597-9fc9fa1e5327.png)
+![mesh-to-sdf](Documentation~/images/mesh-to-sdf-enemies.jpg)
 
 ## Requirements
 
