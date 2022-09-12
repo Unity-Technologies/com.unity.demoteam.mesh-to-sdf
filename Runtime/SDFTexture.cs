@@ -6,11 +6,14 @@ public class SDFTexture : MonoBehaviour
 {
     [SerializeField]
     Texture m_SDF;
-    public Vector3 m_Size = Vector3.one;
+    [SerializeField]
+    Vector3 m_Size = Vector3.one;
     [SerializeField]
     int m_Resolution = 64;
 
-    public Texture sdf { get { OnValidate(); return m_SDF; } }
+    public Texture sdf { get { ValidateTexture(); return m_SDF; } set { m_SDF = value; } }
+    public Vector3 size { get { return m_Size; } set { m_Size = value; ValidateSize(); } }
+    public int resolution { get { return m_Resolution; } set { m_Resolution = value; ValidateResolution(); } }
 
     public enum Mode
     {
@@ -108,40 +111,56 @@ public class SDFTexture : MonoBehaviour
         }
     }
 
-    public void OnValidate()
+    void ValidateSize()
     {
         m_Size.x = Mathf.Max(m_Size.x, 0.001f);
+    }
+
+    void ValidateResolution()
+    {
         m_Resolution = Mathf.Clamp(m_Resolution, 1, 512);
+    }
 
-        if (mode != Mode.Static)
+    void ValidateTexture()
+    {
+        // TODO: mode selection should happen here, not in the SDFTextureEditor.OnInspectorGUI()
+
+        if (mode == Mode.Static)
+            return;
+        
+        RenderTexture rt = m_SDF as RenderTexture;
+        if (rt == null)
+            return;
+        
+        Vector3Int res = voxelResolution;
+        bool serializedPropertyChanged = rt.depth != 0 || rt.width != res.x || rt.height != res.y || rt.volumeDepth != res.z || rt.format != RenderTextureFormat.RHalf || rt.dimension != TextureDimension.Tex3D;
+
+        if (!rt.enableRandomWrite || serializedPropertyChanged)
         {
-            RenderTexture rt = m_SDF as RenderTexture;
-            if (rt == null)
-                return;
-            
-            Vector3Int res = voxelResolution;
-            bool serializedPropertyChanged = rt.depth != 0 || rt.width != res.x || rt.height != res.y || rt.volumeDepth != res.z || rt.format != RenderTextureFormat.RHalf || rt.dimension != TextureDimension.Tex3D;
-
-            if (!rt.enableRandomWrite || serializedPropertyChanged)
+            rt.Release();
+            if (serializedPropertyChanged)
             {
-                rt.Release();
-                if (serializedPropertyChanged)
-                {
-                    rt.depth = 0;
-                    rt.width = res.x;
-                    rt.height = res.y;
-                    rt.volumeDepth = res.z;
-                    rt.format = RenderTextureFormat.RHalf;
-                    rt.dimension = TextureDimension.Tex3D;
-                }
-                
-                // For some reason this flag gets lost (not serialized?), so we don't want to write and dirty other properties if just this doesn't match
-                rt.enableRandomWrite = true;
-                rt.Create();
+                rt.depth = 0;
+                rt.width = res.x;
+                rt.height = res.y;
+                rt.volumeDepth = res.z;
+                rt.format = RenderTextureFormat.RHalf;
+                rt.dimension = TextureDimension.Tex3D;
             }
-
-            if (rt.wrapMode != TextureWrapMode.Clamp)
-                rt.wrapMode = TextureWrapMode.Clamp;
+            
+            // For some reason this flag gets lost (not serialized?), so we don't want to write and dirty other properties if just this doesn't match
+            rt.enableRandomWrite = true;
+            rt.Create();
         }
+
+        if (rt.wrapMode != TextureWrapMode.Clamp)
+            rt.wrapMode = TextureWrapMode.Clamp;
+    }
+
+    public void OnValidate()
+    {
+        ValidateSize();
+        ValidateResolution();
+        ValidateTexture();
     }
 }

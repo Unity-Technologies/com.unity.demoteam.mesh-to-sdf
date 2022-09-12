@@ -20,6 +20,12 @@ public class MeshToSDF : MonoBehaviour
         Ultra
     }
 
+    public enum DistanceMode
+    {
+        Signed,
+        Unsigned
+    }
+
     [Header("Flood fill")]
     [SerializeField]
     [Tooltip(@"Use jump flood if you need to fill the entire volume, but it only outputs unsigned distance.
@@ -30,16 +36,14 @@ If you need signed distance or just need a limited shell around your surface, us
     FloodFillQuality m_FloodFillQuality;
     [Range(0, 64), SerializeField]
     int m_FloodFillIterations = 0;
-
-    public enum DistanceMode
-    {
-        Signed,
-        Unsigned
-    }
-
     [Header("Distance Mode")]
     [SerializeField]
     DistanceMode m_DistanceMode = DistanceMode.Signed;
+
+    public SDFTexture sdfTexture { get; set; }
+    public FloodMode floodMode  { get; set; }
+    public FloodFillQuality floodFillQuality  { get; set; }
+    public int floodFillIterations  { get { return m_FloodFillIterations; } set { m_FloodFillIterations = Mathf.Clamp(value, 0, 64); } }
 
     [SerializeField]
     ComputeShader m_Compute = null;
