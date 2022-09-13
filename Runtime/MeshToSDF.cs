@@ -6,6 +6,7 @@ using UnityEngine.Rendering;
 public class MeshToSDF : MonoBehaviour
 {
     [SerializeField]
+    [Tooltip("The SDFTexture that the SDF will be rendered to. Make sure the SDFTexture references a 3D RenderTexture.")]
     SDFTexture m_SDFTexture;
 
     public enum FloodMode

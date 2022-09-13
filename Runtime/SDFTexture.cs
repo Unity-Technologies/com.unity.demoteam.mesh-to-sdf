@@ -5,10 +5,13 @@ using System;
 public class SDFTexture : MonoBehaviour
 {
     [SerializeField]
+    [Tooltip("Either a static 3DTexture asset containing an SDF, or a 3D RenderTexture. A 3D RenderTexture is where MeshToSDF writes the SDF.")]
     Texture m_SDF;
     [SerializeField]
+    [Tooltip("Size of the volume. The effective size of the volume will be rounded off to the nearest full voxel, to keep voxels cubic.")]
     Vector3 m_Size = Vector3.one;
     [SerializeField]
+    [Tooltip("Voxel count along each axis. Y and Z resolutions are calculated automatically from X and proportions of the volume. Voxel counts above 64^3 might lead to poor performance.")]
     int m_Resolution = 64;
 
     public Texture sdf { get { ValidateTexture(); return m_SDF; } set { m_SDF = value; } }

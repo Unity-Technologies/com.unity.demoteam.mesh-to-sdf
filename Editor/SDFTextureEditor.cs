@@ -188,9 +188,9 @@ public class SDFTextureEditor : Editor
         EditorGUILayout.Space();
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("Debug", EditorStyles.boldLabel);
-        s_Axis = (Axis)EditorGUILayout.EnumPopup("Axis", s_Axis);
+        s_Axis = (Axis)EditorGUILayout.EnumPopup(new GUIContent("Axis", "Draw SDF visualisation across the selected axis."), s_Axis);
 
-        float slice = EditorGUILayout.Slider("Slice", s_Slice, 0, 1);
+        float slice = EditorGUILayout.Slider(new GUIContent("Slice", "Draw SDF visualisation for this slice along the selected axis."), s_Slice, 0, 1);
         if (slice != s_Slice)
         {
             s_Slice = slice;
