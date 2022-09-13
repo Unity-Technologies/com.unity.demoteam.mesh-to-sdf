@@ -36,7 +36,9 @@ float3 GetPos(ByteAddressBuffer vertexBuffer, uint i)
 
 #include "../_External/TressFXSDF.hlsl"
 
-RWTexture3D<half> _SDF;
+// The texture is a half, but on metal declaring it as a half silently breaks writing
+RWTexture3D<float> _SDF;
+
 StructuredBuffer<float> _SDFBuffer;
 RWStructuredBuffer<float> _SDFBufferRW;
 
