@@ -21,6 +21,8 @@ public class MeshToSDFEditor : Editor
 
     public override void OnInspectorGUI()
     {
+        ValidateMesh();
+
         EditorGUILayout.PropertyField(m_SDFTexture);
 
         SDFTexture sdftexture = m_SDFTexture.objectReferenceValue as SDFTexture;
@@ -44,7 +46,39 @@ public class MeshToSDFEditor : Editor
             m_DistanceMode.enumValueIndex = oldValue;
             GUI.enabled = true;
         }
-
+        
         serializedObject.ApplyModifiedProperties();
+    }
+
+    void ValidateMesh()
+    {
+        MeshToSDF meshToSDF = target as MeshToSDF;
+        Mesh mesh = null;
+        SkinnedMeshRenderer smr = meshToSDF.GetComponent<SkinnedMeshRenderer>();
+        if (smr != null)
+            mesh = smr.sharedMesh;
+        if (mesh == null)
+        {
+            MeshFilter mf = meshToSDF.GetComponent<MeshFilter>();
+            if (mf != null)
+                mesh = mf.sharedMesh;
+        }
+        if (mesh == null)
+        {
+            EditorGUILayout.HelpBox("MeshToSDF needs a Mesh from either a SkinnedMeshRenderer or a MeshFilter component on this GameObject.", MessageType.Error);
+            return;
+        }
+
+        if (mesh.subMeshCount > 1)
+            EditorGUILayout.HelpBox("Multiple submeshes detected, will only use the first one.", MessageType.Warning);
+
+        if (mesh.GetTopology(0) != MeshTopology.Triangles)
+            EditorGUILayout.HelpBox("Only triangular topology meshes supported (MeshTopology.Triangles).", MessageType.Error);
+
+        if (mesh.indexFormat != UnityEngine.Rendering.IndexFormat.UInt16)
+            EditorGUILayout.HelpBox("Only 16 bit indices supported. The mesh is probably way too large.", MessageType.Error);
+
+        if (mesh.GetIndexCount(0) > 3 * 10000)
+            EditorGUILayout.HelpBox("This looks like a large mesh. For best performance and a smoother SDF, use a proxy mesh of under 10k triangles.", MessageType.Warning);
     }
 }
