@@ -75,6 +75,7 @@ If you need signed distance or just need a limited shell around your surface, us
 
     const int kThreadCount = 64;
     int m_ThreadGroupCountTriangles;
+    public static int maxVoxelCount { get { int maxThreadGroupCount = 65535; return maxThreadGroupCount * kThreadCount; }}
 
     static class Uniforms
     {

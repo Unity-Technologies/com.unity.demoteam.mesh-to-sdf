@@ -176,6 +176,9 @@ public class SDFTextureEditor : Editor
                 GUI.enabled = true;
                 EditorGUIUtility.labelWidth = 0;
                 EditorGUI.EndProperty();
+
+                if (sdftexture.resolution >= sdftexture.maxResolution)
+                    EditorGUILayout.HelpBox("Maximum voxel count reached. Recommended resolution below 64^3.", MessageType.Info);
                 break;
         }
 

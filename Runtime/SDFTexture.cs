@@ -40,27 +40,18 @@ public class SDFTexture : MonoBehaviour
     public Vector3Int voxelResolution
     { 
         get
-        {
-            if (m_SDF == null)
-                return Vector3Int.zero;
-            
+        {            
             Texture3D tex3D = m_SDF as Texture3D;
             if (tex3D != null)
                 return new Vector3Int(tex3D.width, tex3D.height, tex3D.depth);
 
-            RenderTexture rt = m_SDF as RenderTexture;
-            if (rt != null && rt.dimension == TextureDimension.Tex3D)
-            {
-                Vector3Int res = new Vector3Int();
-                res.x = m_Resolution;
-                res.y = (int)(m_Resolution * m_Size.y / m_Size.x);
-                res.z = (int)(m_Resolution * m_Size.z / m_Size.x);
-                res.y = Mathf.Clamp(res.y, 1, 512);
-                res.z = Mathf.Clamp(res.z, 1, 512);
-                return res;
-            }
-
-            return Vector3Int.zero;
+            Vector3Int res = new Vector3Int();
+            res.x = m_Resolution;
+            res.y = (int)(m_Resolution * m_Size.y / m_Size.x);
+            res.z = (int)(m_Resolution * m_Size.z / m_Size.x);
+            res.y = Mathf.Clamp(res.y, 1, 512);
+            res.z = Mathf.Clamp(res.z, 1, 512);
+            return res;
         }
     }
 
@@ -111,14 +102,28 @@ public class SDFTexture : MonoBehaviour
         }
     }
 
+    public int maxResolution
+    {
+        get
+        {
+            // res * (res * size.y / size.x) * (res * size.z / size.x) = voxel_count
+            // res^3 = voxel_count * size.x * size.x / (size.y * size.z)
+            int maxResolution = (int)(Mathf.Pow(MeshToSDF.maxVoxelCount * m_Size.x * m_Size.x / (m_Size.y * m_Size.z), 1.0f/3.0f));
+            return Mathf.Clamp(maxResolution, 1, 512);
+        }
+    }
+
     void ValidateSize()
     {
         m_Size.x = Mathf.Max(m_Size.x, 0.001f);
+        m_Size.y = Mathf.Max(m_Size.y, 0.001f);
+        m_Size.z = Mathf.Max(m_Size.z, 0.001f);
     }
 
+    
     void ValidateResolution()
     {
-        m_Resolution = Mathf.Clamp(m_Resolution, 1, 512);
+        m_Resolution = Mathf.Clamp(m_Resolution, 1, maxResolution);
     }
 
     void ValidateTexture()
