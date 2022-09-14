@@ -80,5 +80,8 @@ public class MeshToSDFEditor : Editor
 
         if (mesh.GetIndexCount(0) > 3 * 10000)
             EditorGUILayout.HelpBox("This looks like a large mesh. For best performance and a smoother SDF, use a proxy mesh of under 10k triangles.", MessageType.Warning);
+
+        if (mesh.GetVertexAttributeStream(UnityEngine.Rendering.VertexAttribute.Position) < 0)
+            EditorGUILayout.HelpBox("No vertex positions in the mesh.", MessageType.Error);
     }
 }

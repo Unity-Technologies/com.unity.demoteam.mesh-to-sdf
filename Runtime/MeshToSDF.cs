@@ -349,6 +349,12 @@ If you need signed distance or just need a limited shell around your surface, us
         }
 
         int stream = mesh.GetVertexAttributeStream(VertexAttribute.Position);
+        if (stream < 0)
+        {
+            Debug.LogError("MeshToSDF: no vertex positions in mesh '" + mesh.name + "', aborting.", this);
+            return false;
+        }   
+
         m_VertexBufferStride = mesh.GetVertexBufferStride(stream);
         m_VertexBufferPosAttributeOffset = mesh.GetVertexAttributeOffset(VertexAttribute.Position);
         m_VertexBuffer = m_SkinnedMeshRenderer != null ? m_SkinnedMeshRenderer.GetVertexBuffer() : mesh.GetVertexBuffer(stream);
