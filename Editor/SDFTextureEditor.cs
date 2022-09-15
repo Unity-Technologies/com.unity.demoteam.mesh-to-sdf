@@ -9,7 +9,6 @@ public class SDFTextureEditor : Editor
     static Mesh s_Quad;
     static SDFTexture s_SDFTexture;
     static Material s_Material;
-    static MaterialPropertyBlock s_Props;
     static float s_Slice = 0.5f; // [0, 1]
     static Axis s_Axis = Axis.X;
 
@@ -92,19 +91,6 @@ public class SDFTextureEditor : Editor
         matrix *= Matrix4x4.Scale(voxelBounds.size);
         matrix *= Matrix4x4.Rotate(rot);
 
-#if USING_HDRP
-        if (s_Props == null)
-            s_Props = new MaterialPropertyBlock();
-
-        s_Props.Clear();
-        s_Props.SetFloat(Uniforms._Z, s_Slice);
-        s_Props.SetInt(Uniforms._Axis, (int)s_Axis);
-        s_Props.SetVector("_VoxelResolution", new Vector4(voxelResolution.x, voxelResolution.y, voxelResolution.z));
-        s_Props.SetFloat(Uniforms._DistanceScale, distanceScale);
-        s_Props.SetTexture("_SDF", sdf);
-
-        Graphics.DrawMesh(s_Quad, matrix, s_Material, layer:0, camera, submeshIndex:0, properties:s_Props);
-#else // URP and Built-In RP
         s_Material.SetFloat(Uniforms._Z, s_Slice);
         s_Material.SetInt(Uniforms._Axis, (int)s_Axis);
         s_Material.SetVector("_VoxelResolution", new Vector4(voxelResolution.x, voxelResolution.y, voxelResolution.z));
@@ -113,7 +99,6 @@ public class SDFTextureEditor : Editor
 
         s_Material.SetPass(0);
         Graphics.DrawMeshNow(s_Quad, matrix);
-#endif
     }
 
     static void OnSceneGUI(UnityEditor.SceneView sceneview)
