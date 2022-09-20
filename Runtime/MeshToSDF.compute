@@ -98,13 +98,18 @@ float MinDist(float currentDist, float adjacentDist, float step)
     // We're one more cell away now
     adjacentDist += step;
 
-    // Just overwrite invalid values
+    float dist = 0;
     if (adjacentDist > _MaxDistance)
-        return currentDist;
-    if (currentDist > _MaxDistance)
-        return adjacentDist;
-    
-    return currentDist < 0 ? max(adjacentDist, currentDist) : min(adjacentDist, currentDist);
+        // ignore invalid adjacent
+        dist = currentDist;
+    else if (currentDist > _MaxDistance)
+        // ignore invalid current
+        dist = adjacentDist;
+    else
+        // pick closer to 0
+        dist = currentDist < 0 ? max(adjacentDist, currentDist) : min(adjacentDist, currentDist);
+
+    return dist;
 }
 
 #define SQRT_2 1.41421356
