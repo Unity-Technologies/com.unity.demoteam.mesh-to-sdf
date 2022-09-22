@@ -29,3 +29,11 @@ The SDF can be previewed either by selecting the SDFTexture game object while in
 
 \
 ![mesh-to-sdf sample](../Documentation~/images/mesh-to-sdf-sample.png)
+
+
+## Limitations and known issues
+
+- MacOS/Metal - there's a known bug causing occasional garbage output, and the SDF visualisation causing artifacts in other Editor windows.
+- One MeshToSDF per SDF - no support yet for multiple MeshToSDF instances writing to the same SDF render texture.
+- Vertex shader animation - vertex shader animation is not supported. However any kind of vertex animation affecting vertex buffers, including GPU skinning, is supported for meshes from SkinnedMeshRenderers.
+- One submesh - for meshes with multiple submeshes, only the first submesh will be used.
