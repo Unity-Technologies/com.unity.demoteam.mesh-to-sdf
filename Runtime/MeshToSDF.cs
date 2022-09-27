@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -8,6 +8,12 @@ public class MeshToSDF : MonoBehaviour
     [SerializeField]
     [Tooltip("The SDFTexture that the SDF will be rendered to. Make sure the SDFTexture references a 3D RenderTexture.")]
     SDFTexture m_SDFTexture;
+
+    public enum UpdateMode
+    {
+        OnBeginFrame,
+        Explicit
+    }
 
     public enum FloodMode
     {
@@ -40,11 +46,14 @@ If you need signed distance or just need a limited shell around your surface, us
     [Header("Distance Mode")]
     [SerializeField]
     DistanceMode m_DistanceMode = DistanceMode.Signed;
+    [SerializeField]
+    UpdateMode m_UpdateMode = UpdateMode.OnBeginFrame;
 
-    public SDFTexture sdfTexture { get; set; }
-    public FloodMode floodMode  { get; set; }
-    public FloodFillQuality floodFillQuality  { get; set; }
+    public SDFTexture sdfTexture { get { return m_SDFTexture; } set { m_SDFTexture = value; } }
+    public FloodMode floodMode  { get { return m_FloodMode; } set { m_FloodMode = value; } }
+    public FloodFillQuality floodFillQuality  { get { return m_FloodFillQuality; } set { m_FloodFillQuality = value; } }
     public int floodFillIterations  { get { return m_FloodFillIterations; } set { m_FloodFillIterations = Mathf.Clamp(value, 0, 64); } }
+    public UpdateMode updateMode { get {return m_UpdateMode; } set { m_UpdateMode = value; } }
 
     [SerializeField]
     ComputeShader m_Compute = null;
@@ -145,20 +154,52 @@ If you need signed distance or just need a limited shell around your surface, us
         m_MeshFilter = GetComponent<MeshFilter>();
     }
 
-    void LateUpdate()
+    public void UpdateSDF(CommandBuffer cmd)
     {
-        // TODO: proper scheduling
+        if (m_UpdateMode != UpdateMode.Explicit)
+        {
+            Debug.LogError("Switch MeshToSDF to explicit scheduling mode before directly controlling its update.", this);
+            return;
+        }
+
+        RenderSDF(cmd);
+    }
+
+#if USING_HDRP || USING_URP
+    void OnBeginContextRendering(ScriptableRenderContext context, System.Collections.Generic.List<Camera> cameras)
+    {
+        if (m_UpdateMode != UpdateMode.OnBeginFrame)
+            return;
+
+        CommandBuffer cmd = CommandBufferPool.Get(Labels.MeshToSDF);
+
+        RenderSDF(cmd);
+        context.ExecuteCommandBuffer(cmd);
+        
+        CommandBufferPool.Release(cmd);
+    }
+#else
+
+    int m_LastFrame = -1;
+
+    void OnPreRenderCamera(Camera camera)
+    {
+        if (m_UpdateMode != UpdateMode.BeginFrame)
+            return;
+
+        if (Time.renderedFrameCount == m_LastFrame)
+            return;
 
         if (m_CommandBuffer == null)
-        {
-            m_CommandBuffer = new CommandBuffer();
-            m_CommandBuffer.name = Labels.MeshToSDF;
-        }
+            m_CommandBuffer = new CommandBuffer(){ name = Labels.MeshToSDF };
 
         RenderSDF(m_CommandBuffer);
 
         Graphics.ExecuteCommandBuffer(m_CommandBuffer);
+
+        m_LastFrame = Time.renderedFrameCount;
     }
+#endif
 
     void RenderSDF(CommandBuffer cmd)
     {
@@ -401,10 +442,32 @@ If you need signed distance or just need a limited shell around your surface, us
     }
 
 #if UNITY_EDITOR
-    void OnEnable() => UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += OnBeforeAssemblyReload; 
-    void OnDisable() => UnityEditor.AssemblyReloadEvents.beforeAssemblyReload -= OnBeforeAssemblyReload;
     void OnBeforeAssemblyReload() => OnDestroy();
 #endif
+
+    void OnEnable()
+    {
+#if UNITY_EDITOR
+        UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += OnBeforeAssemblyReload;
+#endif
+#if USING_HDRP || USING_URP
+        RenderPipelineManager.beginContextRendering += OnBeginContextRendering;
+#else
+        Camera.onPreRender += OnPreRenderCamera;
+#endif
+    }
+
+    void OnDisable()
+    {
+#if UNITY_EDITOR
+        UnityEditor.AssemblyReloadEvents.beforeAssemblyReload -= OnBeforeAssemblyReload;
+#endif
+#if USING_HDRP || USING_URP
+        RenderPipelineManager.beginContextRendering -= OnBeginContextRendering;
+#else
+        Camera.onPreRender -= OnPreRenderCamera;
+#endif
+    }
 
     void OnDestroy()
     {
@@ -414,5 +477,7 @@ If you need signed distance or just need a limited shell around your surface, us
         ReleaseComputeBuffer(ref m_JumpBufferBis);
         ReleaseGraphicsBuffer(ref m_VertexBuffer);
         ReleaseGraphicsBuffer(ref m_IndexBuffer);
+        if (m_CommandBuffer != null)
+            m_CommandBuffer.Release();
     }
 }

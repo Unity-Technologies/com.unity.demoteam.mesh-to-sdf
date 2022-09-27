@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEditor;
 
 [CustomEditor(typeof(MeshToSDF))]
@@ -9,6 +9,7 @@ public class MeshToSDFEditor : Editor
     SerializedProperty m_FloodFillQuality;
     SerializedProperty m_FloodFillIterations;
     SerializedProperty m_DistanceMode;
+    SerializedProperty m_UpdateMode;
 
     void OnEnable()
     {
@@ -17,11 +18,18 @@ public class MeshToSDFEditor : Editor
         m_FloodFillQuality = serializedObject.FindProperty("m_FloodFillQuality");
         m_FloodFillIterations = serializedObject.FindProperty("m_FloodFillIterations");
         m_DistanceMode = serializedObject.FindProperty("m_DistanceMode");
+        m_UpdateMode = serializedObject.FindProperty("m_UpdateMode");
     }
 
     public override void OnInspectorGUI()
     {
         ValidateMesh();
+
+        if ((MeshToSDF.UpdateMode)m_UpdateMode.enumValueIndex == MeshToSDF.UpdateMode.Explicit)
+        {
+            EditorGUILayout.HelpBox("Explicit update mode - SDF updates driven by a user script", MessageType.Info);
+            EditorGUILayout.Space();
+        }
 
         EditorGUILayout.PropertyField(m_SDFTexture);
 
