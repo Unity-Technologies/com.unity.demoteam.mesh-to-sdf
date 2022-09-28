@@ -411,9 +411,17 @@ If you need signed distance or just need a limited shell around your surface, us
 
     Matrix4x4 GetMeshToSDFMatrix()
     {
-        Matrix4x4 meshToWorld = m_SkinnedMeshRenderer != null && m_SkinnedMeshRenderer.rootBone != null ? 
-            m_SkinnedMeshRenderer.rootBone.localToWorldMatrix * Matrix4x4.Scale(m_SkinnedMeshRenderer.rootBone.lossyScale).inverse :
-            transform.localToWorldMatrix * Matrix4x4.Scale(transform.lossyScale).inverse;
+        Matrix4x4 meshToWorld;
+
+        if (m_SkinnedMeshRenderer != null)
+        {
+            if (m_SkinnedMeshRenderer.rootBone != null)
+                meshToWorld = m_SkinnedMeshRenderer.rootBone.localToWorldMatrix * Matrix4x4.Scale(m_SkinnedMeshRenderer.rootBone.lossyScale).inverse;
+            else
+                meshToWorld = transform.localToWorldMatrix * Matrix4x4.Scale(transform.lossyScale).inverse;
+        }
+        else // static mesh
+            meshToWorld = transform.localToWorldMatrix;
 
          return m_SDFTexture.transform.worldToLocalMatrix * meshToWorld;
     }
