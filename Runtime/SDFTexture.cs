@@ -131,8 +131,6 @@ public class SDFTexture : MonoBehaviour
 
     void ValidateTexture()
     {
-        // TODO: mode selection should happen here, not in the SDFTextureEditor.OnInspectorGUI()
-
         if (mode == Mode.Static)
             return;
         

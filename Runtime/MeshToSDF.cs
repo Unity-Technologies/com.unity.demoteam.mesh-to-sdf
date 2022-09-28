@@ -203,7 +203,7 @@ If you need signed distance or just need a limited shell around your surface, us
 
     void RenderSDF(CommandBuffer cmd)
     {
-        if (m_SDFTexture == null || m_SDFTexture.mode == SDFTexture.Mode.None)
+        if (m_SDFTexture == null || m_SDFTexture.mode != SDFTexture.Mode.Dynamic)
             return;
 
         Vector3Int voxelResolution = m_SDFTexture.voxelResolution;

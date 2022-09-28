@@ -36,6 +36,8 @@ public class MeshToSDFEditor : Editor
         SDFTexture sdftexture = m_SDFTexture.objectReferenceValue as SDFTexture;
         if (sdftexture == null)
             EditorGUILayout.HelpBox("Assign an object with an SDFTexture component - that's where this script will write the SDF to.", MessageType.Warning);
+        else if (sdftexture.mode != SDFTexture.Mode.Dynamic)
+            EditorGUILayout.HelpBox("SDFTexture needs to reference a RenderTexture to be writeable.", MessageType.Error);
 
         EditorGUILayout.PropertyField(m_FloodMode);
         EditorGUILayout.PropertyField(m_FloodFillQuality);

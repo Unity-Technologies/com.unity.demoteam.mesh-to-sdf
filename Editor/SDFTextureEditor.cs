@@ -132,7 +132,7 @@ public class SDFTextureEditor : Editor
         switch(sdftexture.mode)
         {   
             case SDFTexture.Mode.None:
-                EditorGUILayout.HelpBox("Assign a Texture3D with a static SDF or a 3D RenderTexture to write dynamic SDF to.", MessageType.Warning);
+                EditorGUILayout.HelpBox("Assign a static SDF Texture3D, or a RenderTexture if MeshToSDF is meant to output here.", MessageType.Warning);
                 break;
             case SDFTexture.Mode.Static:
                 GUI.enabled = false;
