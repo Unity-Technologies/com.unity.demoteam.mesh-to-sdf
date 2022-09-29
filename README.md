@@ -14,6 +14,7 @@ The generator works by first splatting distances into voxels in a small area aro
 ## Requirements
 
 - Unity 2021.2+ (mesh buffer access in compute shaders)
+- Compute shaders supported on target platform
 
 ## Installation
 
@@ -35,4 +36,8 @@ Declare the package as a git dependency in `Packages/manifest.json`:
 ## Documentation
 
 [Quickstart](Documentation~/index.md)
+
+## Known issues
+
+- Garbage output in some cases on MacOS/Metal.
 
