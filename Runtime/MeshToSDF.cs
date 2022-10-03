@@ -184,7 +184,7 @@ If you need signed distance or just need a limited shell around your surface, us
 
     void OnPreRenderCamera(Camera camera)
     {
-        if (m_UpdateMode != UpdateMode.BeginFrame)
+        if (m_UpdateMode != UpdateMode.OnBeginFrame)
             return;
 
         if (Time.renderedFrameCount == m_LastFrame)
