@@ -192,7 +192,9 @@ If you need signed distance or just need a limited shell around your surface, us
 
         if (m_CommandBuffer == null)
             m_CommandBuffer = new CommandBuffer(){ name = Labels.MeshToSDF };
-
+        else
+            m_CommandBuffer.Clear();
+        
         RenderSDF(m_CommandBuffer);
 
         Graphics.ExecuteCommandBuffer(m_CommandBuffer);
@@ -233,7 +235,6 @@ If you need signed distance or just need a limited shell around your surface, us
             return;
         }
 
-        cmd.Clear();
         cmd.SetComputeVectorParam(m_Compute, Uniforms.g_Origin, voxelBounds.center - voxelBounds.extents);
         cmd.SetComputeFloatParam(m_Compute, Uniforms.g_CellSize, voxelSize);
         cmd.SetComputeIntParam(m_Compute, Uniforms.g_NumCellsX, voxelResolution.x);
