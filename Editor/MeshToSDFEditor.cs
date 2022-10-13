@@ -5,6 +5,7 @@ using UnityEditor;
 public class MeshToSDFEditor : Editor
 {
     SerializedProperty m_SDFTexture;
+    SerializedProperty m_FlipSign;
     SerializedProperty m_FloodMode;
     SerializedProperty m_FloodFillQuality;
     SerializedProperty m_FloodFillIterations;
@@ -14,6 +15,7 @@ public class MeshToSDFEditor : Editor
     void OnEnable()
     {
         m_SDFTexture = serializedObject.FindProperty("m_SDFTexture");
+        m_FlipSign = serializedObject.FindProperty("m_FlipSign");
         m_FloodMode = serializedObject.FindProperty("m_FloodMode");
         m_FloodFillQuality = serializedObject.FindProperty("m_FloodFillQuality");
         m_FloodFillIterations = serializedObject.FindProperty("m_FloodFillIterations");
@@ -50,11 +52,25 @@ public class MeshToSDFEditor : Editor
         else
         {
             GUI.enabled = false;
-            int oldValue = m_DistanceMode.enumValueIndex;
+
+            int oldDistanceMode = m_DistanceMode.enumValueIndex;
             m_DistanceMode.enumValueIndex = (int)MeshToSDF.DistanceMode.Unsigned;
             EditorGUILayout.PropertyField(m_DistanceMode);
-            m_DistanceMode.enumValueIndex = oldValue;
+            m_DistanceMode.enumValueIndex = oldDistanceMode;
+            
             GUI.enabled = true;
+        }
+
+        if ((MeshToSDF.FloodMode)m_FloodMode.enumValueIndex == MeshToSDF.FloodMode.Linear && (MeshToSDF.DistanceMode)m_DistanceMode.enumValueIndex == MeshToSDF.DistanceMode.Signed)
+        {
+            EditorGUILayout.PropertyField(m_FlipSign);
+        }
+        else
+        {
+            bool oldFlipSign = m_FlipSign.boolValue;
+            m_FlipSign.boolValue = false;
+            EditorGUILayout.PropertyField(m_FlipSign);
+            m_FlipSign.boolValue = oldFlipSign;
         }
         
         serializedObject.ApplyModifiedProperties();

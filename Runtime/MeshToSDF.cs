@@ -47,12 +47,17 @@ If you need signed distance or just need a limited shell around your surface, us
     [SerializeField]
     DistanceMode m_DistanceMode = DistanceMode.Signed;
     [SerializeField]
+    [Tooltip("Flip the sign of the distance field, so that the interior is positive and exterior - negative.")]
+    bool m_FlipSign = false;
+    [SerializeField]
     UpdateMode m_UpdateMode = UpdateMode.OnBeginFrame;
 
     public SDFTexture sdfTexture { get { return m_SDFTexture; } set { m_SDFTexture = value; } }
+    public bool flipSign { get { return m_FlipSign; } set { m_FlipSign = value; } }
     public FloodMode floodMode  { get { return m_FloodMode; } set { m_FloodMode = value; } }
     public FloodFillQuality floodFillQuality  { get { return m_FloodFillQuality; } set { m_FloodFillQuality = value; } }
     public int floodFillIterations  { get { return m_FloodFillIterations; } set { m_FloodFillIterations = Mathf.Clamp(value, 0, 64); } }
+    public DistanceMode distanceMode { get { return m_DistanceMode; } set { m_DistanceMode = value; } }
     public UpdateMode updateMode { get {return m_UpdateMode; } set { m_UpdateMode = value; } }
 
     [SerializeField]
@@ -104,6 +109,7 @@ If you need signed distance or just need a limited shell around your surface, us
         internal static int g_NumCellsZ = Shader.PropertyToID("g_NumCellsZ");
         internal static int g_Origin = Shader.PropertyToID("g_Origin");
         internal static int g_CellSize = Shader.PropertyToID("g_CellSize");
+        internal static int g_FlipSign = Shader.PropertyToID("g_FlipSign");
         internal static int g_VertexBuffer = Shader.PropertyToID("g_VertexBuffer");
         internal static int g_IndexBuffer = Shader.PropertyToID("g_IndexBuffer");
         internal static int _VertexBufferStride = Shader.PropertyToID("_VertexBufferStride");
@@ -240,6 +246,7 @@ If you need signed distance or just need a limited shell around your surface, us
         cmd.SetComputeIntParam(m_Compute, Uniforms.g_NumCellsX, voxelResolution.x);
         cmd.SetComputeIntParam(m_Compute, Uniforms.g_NumCellsY, voxelResolution.y);
         cmd.SetComputeIntParam(m_Compute, Uniforms.g_NumCellsZ, voxelResolution.z);
+        cmd.SetComputeFloatParam(m_Compute, Uniforms.g_FlipSign, m_FlipSign ? -1 : 1);
         int[] voxelResolutionArray = {voxelResolution.x, voxelResolution.y, voxelResolution.z, voxelCount};
         cmd.SetComputeIntParams(m_Compute, Uniforms._VoxelResolution, voxelResolutionArray);
         float maxDistance = voxelBounds.size.magnitude;

@@ -28,6 +28,7 @@ float g_CellSize;
 int g_NumCellsX;
 int g_NumCellsY;
 int g_NumCellsZ;
+float g_FlipSign;
 
 #define MARGIN g_CellSize
 #define GRID_MARGIN int3(1, 1, 1)
@@ -204,6 +205,7 @@ float SignedDistancePointToTriangle(float3 p, float3 x0, float3 x1, float3 x2)
 
 #ifdef SIGNED
 	d = (dot(p - x0, nTri) < 0.f) ? -d : d;
+	d *= g_FlipSign;
 #endif
 
 	return d;
