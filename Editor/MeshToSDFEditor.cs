@@ -11,6 +11,7 @@ public class MeshToSDFEditor : Editor
     SerializedProperty m_FloodFillIterations;
     SerializedProperty m_DistanceMode;
     SerializedProperty m_UpdateMode;
+    SerializedProperty m_Offset;
 
     void OnEnable()
     {
@@ -21,6 +22,7 @@ public class MeshToSDFEditor : Editor
         m_FloodFillIterations = serializedObject.FindProperty("m_FloodFillIterations");
         m_DistanceMode = serializedObject.FindProperty("m_DistanceMode");
         m_UpdateMode = serializedObject.FindProperty("m_UpdateMode");
+        m_Offset = serializedObject.FindProperty("m_Offset");
     }
 
     public override void OnInspectorGUI()
@@ -64,13 +66,22 @@ public class MeshToSDFEditor : Editor
         if ((MeshToSDF.FloodMode)m_FloodMode.enumValueIndex == MeshToSDF.FloodMode.Linear && (MeshToSDF.DistanceMode)m_DistanceMode.enumValueIndex == MeshToSDF.DistanceMode.Signed)
         {
             EditorGUILayout.PropertyField(m_FlipSign);
+            EditorGUILayout.PropertyField(m_Offset);
         }
         else
         {
+            GUI.enabled = false;
+
             bool oldFlipSign = m_FlipSign.boolValue;
             m_FlipSign.boolValue = false;
             EditorGUILayout.PropertyField(m_FlipSign);
             m_FlipSign.boolValue = oldFlipSign;
+            float oldOffset = m_Offset.floatValue;
+            m_Offset.floatValue = 0;
+            EditorGUILayout.PropertyField(m_Offset);
+            m_Offset.floatValue = oldOffset;
+
+            GUI.enabled = true;
         }
         
         serializedObject.ApplyModifiedProperties();

@@ -14,6 +14,7 @@ int4 _VoxelResolution; // w = x * y * z
 float _MaxDistance;
 float INITIAL_DISTANCE;
 float4x4 _WorldToLocal;
+float _Offset;
 
 #define THREAD_GROUP_SIZE 64
 
@@ -87,7 +88,7 @@ void BufferToTexture(uint GIndex : SV_GroupIndex, uint3 GId : SV_GroupID, uint3 
 
     int3 center = GetVoxelCoords(voxelIndex);
 
-    _SDF[center] = GetVoxel(voxelIndex);
+    _SDF[center] = GetVoxel(voxelIndex) + _Offset;
 }
 
 float MinDist(float currentDist, float adjacentDist, float step)

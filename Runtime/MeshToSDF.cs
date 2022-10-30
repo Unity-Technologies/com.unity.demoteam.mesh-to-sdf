@@ -50,6 +50,9 @@ If you need signed distance or just need a limited shell around your surface, us
     [Tooltip("Flip the sign of the distance field, so that the interior is positive and exterior - negative.")]
     bool m_FlipSign = false;
     [SerializeField]
+    [Tooltip("Offset the surface by the offset amount by adding it to distances in the final generation step. Applicable only in signed distance mode.")]
+    float m_Offset = 0;
+    [SerializeField]
     UpdateMode m_UpdateMode = UpdateMode.OnBeginFrame;
 
     public SDFTexture sdfTexture { get { return m_SDFTexture; } set { m_SDFTexture = value; } }
@@ -58,6 +61,7 @@ If you need signed distance or just need a limited shell around your surface, us
     public FloodFillQuality floodFillQuality  { get { return m_FloodFillQuality; } set { m_FloodFillQuality = value; } }
     public int floodFillIterations  { get { return m_FloodFillIterations; } set { m_FloodFillIterations = Mathf.Clamp(value, 0, 64); } }
     public DistanceMode distanceMode { get { return m_DistanceMode; } set { m_DistanceMode = value; } }
+    public float offset { get { return m_Offset; } set { m_Offset = value; } }
     public UpdateMode updateMode { get {return m_UpdateMode; } set { m_UpdateMode = value; } }
 
     [SerializeField]
@@ -103,6 +107,7 @@ If you need signed distance or just need a limited shell around your surface, us
         internal static int _MaxDistance = Shader.PropertyToID("_MaxDistance");
         internal static int INITIAL_DISTANCE = Shader.PropertyToID("INITIAL_DISTANCE");
         internal static int _WorldToLocal = Shader.PropertyToID("_WorldToLocal");
+        internal static int _Offset = Shader.PropertyToID("_Offset");
         internal static int g_SignedDistanceField = Shader.PropertyToID("g_SignedDistanceField");
         internal static int g_NumCellsX = Shader.PropertyToID("g_NumCellsX");
         internal static int g_NumCellsY = Shader.PropertyToID("g_NumCellsY");
@@ -358,6 +363,7 @@ If you need signed distance or just need a limited shell around your surface, us
         kernel = m_BufferToTextureCalcGradient;
         cmd.SetComputeBufferParam(m_Compute, kernel, Uniforms._SDFBuffer, m_SDFBuffer);
         cmd.SetComputeTextureParam(m_Compute, kernel, Uniforms._SDF, m_SDFTexture.sdf);
+        cmd.SetComputeFloatParam(m_Compute, Uniforms._Offset, m_DistanceMode == DistanceMode.Signed && m_FloodMode != FloodMode.Jump ? m_Offset : 0);
         cmd.DispatchCompute(m_Compute, kernel, threadGroupCountVoxels, 1, 1);
 		cmd.EndSample(Labels.BufferToTexture);
     }
