@@ -182,6 +182,8 @@ If you need signed distance or just need a limited shell around your surface, us
         RenderSDF(cmd);
         context.ExecuteCommandBuffer(cmd);
         
+        ReleaseGraphicsBuffer(ref m_VertexBuffer);
+        ReleaseGraphicsBuffer(ref m_IndexBuffer);
         CommandBufferPool.Release(cmd);
     }
 #else
@@ -205,6 +207,8 @@ If you need signed distance or just need a limited shell around your surface, us
 
         Graphics.ExecuteCommandBuffer(m_CommandBuffer);
 
+        ReleaseGraphicsBuffer(ref m_VertexBuffer);
+        ReleaseGraphicsBuffer(ref m_IndexBuffer);
         m_LastFrame = Time.renderedFrameCount;
     }
 #endif
@@ -400,9 +404,6 @@ If you need signed distance or just need a limited shell around your surface, us
             Debug.LogError("MeshToSDF: no vertex positions in mesh '" + mesh.name + "', aborting.", this);
             return false;
         }
-
-        ReleaseGraphicsBuffer(ref m_VertexBuffer);
-        ReleaseGraphicsBuffer(ref m_IndexBuffer);
 
         m_VertexBufferStride = mesh.GetVertexBufferStride(stream);
         m_VertexBufferPosAttributeOffset = mesh.GetVertexAttributeOffset(VertexAttribute.Position);
