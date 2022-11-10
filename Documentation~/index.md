@@ -29,6 +29,8 @@ The SDF can be previewed either by selecting the SDFTexture game object while in
 
 \
 ![mesh-to-sdf sample](../Documentation~/images/mesh-to-sdf-sample.png)
+![mesh-to-sdf sample](../Documentation~/images/mesh-to-sdf-sample-skinned.png)
+![mesh-to-sdf sample](../Documentation~/images/inspector-preview.png)
 
 
 ## Limitations and known issues
