@@ -9,7 +9,7 @@
 	"samples": [
 		{
 		  "displayName": "MeshToSDF sample",
-		  "description": "A simple scene with MeshToSDF generating an SDF for a rotating static mesh. Scene variants for HDRP, URP, and Built-in RP.",
+		  "description": "Basic scenes with MeshToSDF generating SDFs for a skinned mesh, and a moving static mesh.",
 		  "path": "Samples~/MeshToSDF-sample"
 		}
 	  ]

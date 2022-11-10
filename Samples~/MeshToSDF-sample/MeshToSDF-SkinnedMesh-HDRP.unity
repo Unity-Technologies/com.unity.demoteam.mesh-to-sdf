@@ -104,7 +104,7 @@ NavMeshSettings:
   serializedVersion: 2
   m_ObjectHideFlags: 0
   m_BuildSettings:
-    serializedVersion: 2
+    serializedVersion: 3
     agentTypeID: 0
     agentRadius: 0.5
     agentHeight: 2
@@ -117,7 +117,7 @@ NavMeshSettings:
     cellSize: 0.16666667
     manualTileSize: 0
     tileSize: 256
-    accuratePlacement: 0
+    buildHeightMesh: 0
     maxJobWorkers: 0
     preserveTilesOutsideBounds: 0
     debug:
@@ -177,13 +177,14 @@ MonoScript:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: 
-  serializedVersion: 5
-  m_Script: 
+  serializedVersion: 7
   m_DefaultReferences: {}
   m_Icon: {fileID: 0}
+  m_Type: 2
   m_ExecutionOrder: 0
   m_ClassName: SceneObjectIDMapSceneAsset
   m_Namespace: UnityEngine.Rendering.HighDefinition
+  m_AssemblyName: 
 --- !u!1 &383012374 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8084944738235565588, guid: ee7b75c48ebf4c3489fc8b9f76bfb627,
@@ -195,7 +196,7 @@ PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
-    serializedVersion: 2
+    serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 1393302059519374012, guid: 7bb143ba97b49a74cb285c23ab4b8cec,
@@ -259,14 +260,16 @@ PrefabInstance:
       value: Mannequin_01_Lights
       objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_RemovedGameObjects: []
     m_AddedGameObjects: []
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7bb143ba97b49a74cb285c23ab4b8cec, type: 3}
 --- !u!1001 &415429186
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
-    serializedVersion: 2
+    serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 42e6a3e75c593b441a96b61c9cd97395,
@@ -334,13 +337,28 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1676831429412873536, guid: 42e6a3e75c593b441a96b61c9cd97395,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: f541f85185aa94f42b26602a40a5cbd1, type: 2}
     - target: {fileID: 6035886171763308422, guid: 42e6a3e75c593b441a96b61c9cd97395,
         type: 3}
       propertyPath: m_RenderingLayerMask
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_RemovedGameObjects: []
     m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 42e6a3e75c593b441a96b61c9cd97395,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 415429188}
+    - targetCorrespondingSourceObject: {fileID: 1011918857456451860, guid: 42e6a3e75c593b441a96b61c9cd97395,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 415429190}
   m_SourcePrefab: {fileID: 100100000, guid: 42e6a3e75c593b441a96b61c9cd97395, type: 3}
 --- !u!1 &415429187 stripped
 GameObject:
@@ -350,7 +368,7 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
 --- !u!95 &415429188
 Animator:
-  serializedVersion: 4
+  serializedVersion: 6
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -364,10 +382,11 @@ Animator:
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
+  m_KeepAnimatorStateOnDisable: 0
 --- !u!1 &415429189 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1011918857456451860, guid: 42e6a3e75c593b441a96b61c9cd97395,
@@ -546,7 +565,7 @@ PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
-    serializedVersion: 2
+    serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 8084944737517866328, guid: ee7b75c48ebf4c3489fc8b9f76bfb627,
@@ -610,5 +629,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_RemovedGameObjects: []
     m_AddedGameObjects: []
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ee7b75c48ebf4c3489fc8b9f76bfb627, type: 3}

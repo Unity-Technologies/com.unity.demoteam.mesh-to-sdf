@@ -59,7 +59,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5134930596796433314}
   m_LocalRotation: {x: 0.60927963, y: -0.573123, z: -0.3822004, w: -0.39272293}
-  m_LocalPosition: {x: -0.015300363, y: -0.028, z: 0.1213}
+  m_LocalPosition: {x: -0.0119, y: -0.2302, z: 0.2094}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -78,7 +78,7 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.9529412, g: 1, b: 0.8352941, a: 1}
-  m_Intensity: 25464.791
+  m_Intensity: 25984.48
   m_Range: 2
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -119,7 +119,7 @@ Light:
   m_RenderingLayerMask: 3
   m_Lightmapping: 4
   m_LightShadowCasterMode: 2
-  m_AreaSize: {x: 0.5, y: 0.5}
+  m_AreaSize: {x: 0.7, y: 0.7}
   m_BounceIntensity: 1
   m_ColorTemperature: 9388
   m_UseColorTemperature: 1
@@ -140,7 +140,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Intensity: 20000
+  m_Intensity: 40000
   m_EnableSpotReflector: 1
   m_LuxAtDistance: 1
   m_InnerSpotPercent: 0
@@ -153,8 +153,8 @@ MonoBehaviour:
   m_AffectDiffuse: 1
   m_AffectSpecular: 1
   m_NonLightmappedOnly: 0
-  m_ShapeWidth: 0.5
-  m_ShapeHeight: 0.5
+  m_ShapeWidth: 0.7
+  m_ShapeHeight: 0.7
   m_AspectRatio: 1
   m_ShapeRadius: 0.025
   m_SoftnessScale: 1
@@ -167,7 +167,7 @@ MonoBehaviour:
   m_IESPoint: {fileID: 0}
   m_IESSpot: {fileID: 0}
   m_IncludeForRayTracing: 1
-  m_AreaLightShadowCone: 15
+  m_AreaLightShadowCone: 10
   m_UseScreenSpaceShadows: 0
   m_InteractsWithSky: 1
   m_AngularDiameter: 0.5
@@ -193,9 +193,9 @@ MonoBehaviour:
   m_LightlayersMask: 3
   m_LinkShadowLayers: 1
   m_ShadowNearPlane: 0.01
-  m_BlockerSampleCount: 42
-  m_FilterSampleCount: 42
-  m_MinFilterSize: 0
+  m_BlockerSampleCount: 12
+  m_FilterSampleCount: 14
+  m_MinFilterSize: 0.2
   m_KernelSize: 5
   m_LightAngle: 1
   m_MaxDepthBias: 0.001
@@ -213,7 +213,7 @@ MonoBehaviour:
   m_RayTracedContactShadow: 0
   m_ShadowTint: {r: 0, g: 0, b: 0, a: 1}
   m_PenumbraTint: 0
-  m_NormalBias: 0.97
+  m_NormalBias: 0
   m_SlopeBias: 0.345
   m_ShadowUpdateMode: 0
   m_AlwaysDrawDynamicShadows: 0
@@ -276,7 +276,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9127099390379318233}
   m_LocalRotation: {x: 0.54234064, y: -0.6971251, z: 0.4681989, w: 0.025944704}
-  m_LocalPosition: {x: -0.177, y: 0.4649, z: 0.387}
+  m_LocalPosition: {x: -0.211, y: 0.504, z: 0.311}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -384,7 +384,7 @@ MonoBehaviour:
   m_IESPoint: {fileID: 0}
   m_IESSpot: {fileID: 0}
   m_IncludeForRayTracing: 1
-  m_AreaLightShadowCone: 15
+  m_AreaLightShadowCone: 10
   m_UseScreenSpaceShadows: 0
   m_InteractsWithSky: 1
   m_AngularDiameter: 0.5
@@ -409,10 +409,10 @@ MonoBehaviour:
   m_EvsmBlurPasses: 0
   m_LightlayersMask: 3
   m_LinkShadowLayers: 1
-  m_ShadowNearPlane: 0.01
-  m_BlockerSampleCount: 42
-  m_FilterSampleCount: 42
-  m_MinFilterSize: 0
+  m_ShadowNearPlane: 0
+  m_BlockerSampleCount: 11
+  m_FilterSampleCount: 12
+  m_MinFilterSize: 0.1
   m_KernelSize: 5
   m_LightAngle: 1
   m_MaxDepthBias: 0.001
@@ -430,8 +430,8 @@ MonoBehaviour:
   m_RayTracedContactShadow: 0
   m_ShadowTint: {r: 0, g: 0, b: 0, a: 1}
   m_PenumbraTint: 0
-  m_NormalBias: 0.97
-  m_SlopeBias: 0.345
+  m_NormalBias: 0
+  m_SlopeBias: 0.389
   m_ShadowUpdateMode: 0
   m_AlwaysDrawDynamicShadows: 0
   m_UpdateShadowOnLightMovement: 0
