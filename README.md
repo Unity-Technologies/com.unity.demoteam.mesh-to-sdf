@@ -14,8 +14,8 @@ The generator works by first splatting distances into voxels in a small area aro
 ## Performance
 
 Tested with a 32^3 voxel volume, 5k triangle mesh
-- jump flood: RTX3090 0.22ms, PS4 0.31ms
-- linear flood, 8 iterations: RTX3090 0.18ms, RTX2080Super 0.21ms, PS4 0.26ms
+- jump flood: RTX3090 0.22ms
+- linear flood, 8 iterations: RTX3090 0.18ms, RTX2080Super 0.21ms
 
 ## Requirements
 
