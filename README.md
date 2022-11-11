@@ -37,6 +37,15 @@ Declare the package as a git dependency in `Packages/manifest.json`:
 
 [Quickstart](Documentation~/index.md)
 
+## Examples
+
+Samples included with the package show basic setup and are described in the doc above.
+
+The [mesh-to-sdf examples](https://github.com/robcupisz/mesh-to-sdf-examples) project is a vfx demo, with the dynamic SDFs driving VFX Graph effects and a raymarching shader:
+
+https://user-images.githubusercontent.com/6276154/201238758-cc87ec4a-a65a-4cb2-b3cc-123576ab9ea2.mov
+
+
 ## Acknowledgements
 
 The core functionality of the generator (initial splatting of distances around mesh faces) uses the implementation from [TressFX](https://github.com/GPUOpen-Effects/TressFX) published by AMD under the MIT license. Thank you!
