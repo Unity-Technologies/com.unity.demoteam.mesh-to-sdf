@@ -7,9 +7,15 @@ The SDF can be used by the VFX Graph, the Hair system, and other effects relying
 \
 ![mesh-to-sdf](Documentation~/images/mesh-to-sdf-skinned.png)
 
-The generator is real-time - to achieve better performance, it sacrifices robustness and the ability to handle large meshes. Typical resolutions would be a 5-8k triangle mesh in a 16^3^-64^3^ voxel volume. If your mesh is much larger or messy (holes, spiky shapes, etc.), it's best to use a cleaner low-res proxy mesh instead. Note that the SDF generator shipping with the VFX Graph has a more robust handling of larger or messy meshes, but it's slower.
+The generator is real-time - to achieve better performance, it sacrifices robustness and the ability to handle large meshes. Typical resolutions would be a 5-8k triangle mesh in a 16^3-64^3 voxel volume. If your mesh is much larger or messy (holes, spiky shapes, etc.), it's best to use a cleaner low-res proxy mesh instead. Note that the SDF generator shipping with the VFX Graph has a more robust handling of larger or messy meshes, but it's slower.
 
 The generator works by first splatting distances into voxels in a small area around each triangle, then using either a linear flood or jump flood to fill the rest of the volume.
+
+## Performance
+
+Tested with a 32^3 voxel volume, 5k triangle mesh
+- jump flood: RTX3090 0.22ms, PS4 0.31ms
+- linear flood, 8 iterations: RTX3090 0.18ms, RTX2080Super 0.21ms, PS4 0.26ms
 
 ## Requirements
 
