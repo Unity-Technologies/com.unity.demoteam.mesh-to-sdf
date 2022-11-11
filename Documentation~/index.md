@@ -15,13 +15,13 @@ Alternatively you can use the SDFTexture component as a way to place in the scen
 
 ### Sample
 
-The setup described above is used in the sample included in the package. It can be imported into the project by navigating to the package in the Package Manager window and using the _Import_ button under _Samples_.
+The setup described above is used in the samples included in the package. Samples can be imported into the project by navigating to the package in the Package Manager window and using the _Import_ button under _Samples_. The Samples folder that now should appear in the project contains scenes demonstrating usage both for static meshes (MeshFilter/MeshRenderer) and skinned meshes (SkinnedMeshRenderer). Setup in both cases is identical, though.
 
-There's a MeshToSDF component responsible for generating an SDF for the static mesh (MeshFilter) on the same game object. A dynamically deforming SkinnedMeshRenderer is supported as well, but not shown in the sample.
+Look for the MeshToSDF component (type *t:MeshToSDF* in the Hierarchy search bar). MeshToSDF is the component responsible for generating an SDF for whatever mesh it finds on the same game object - be it a static mesh in a MeshFilter, or a skinned mesh in a SkinnedMeshRenderer.
 
 The MeshToSDF component references an SDFTexture component. SDFTexture is responsible for placing an SDF in the space (through its Transform), and definiting its bounds (through the _Size_ property).
 
-SDFTexture can use a static, externally generated 3D texture containing an SDF. In that case MeshToSDF wouldn't be needed, and SDFTexture would just be useful for placing the SDF in the space, and exposing that placement, its matrix, etc. through its API.
+SDFTexture can also use a static, externally generated 3D texture containing an SDF. In that case MeshToSDF wouldn't be needed, and SDFTexture would just be useful for placing the SDF in the space, and exposing that placement, its matrix, etc. through its API.
 
 In the sample SDFTexture references a 3D render texture, which allows MeshToSDF to dynamically write an SDF into it.
 
