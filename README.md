@@ -37,7 +37,11 @@ Declare the package as a git dependency in `Packages/manifest.json`:
 
 [Quickstart](Documentation~/index.md)
 
+## Acknowledgements
+
+The core functionality of the generator (initial splatting of distances around mesh faces) uses the implementation from [TressFX](https://github.com/GPUOpen-Effects/TressFX) published by AMD under the MIT license. Thank you!
+
 ## Known issues
 
-- Garbage output in some cases on MacOS/Metal.
+[Limitations and known issues](Documentation~/index.md#limitations-and-known-issues)
 
