@@ -18,13 +18,21 @@ float _Offset;
 
 #define THREAD_GROUP_SIZE 64
 
+bool _IndexFormat16bit;
+
 uint GetIndex(ByteAddressBuffer indexBuffer, uint i)
 {
-	// 2 byte indices, Load() grabs 4 bytes at a time (4 byte aligned) so need to do some unpacking
-	uint entryIndex = i >> 1u;
-	uint entryOffset = i & 1u;
-	uint read = indexBuffer.Load(entryIndex << 2);
-	return entryOffset == 1u ? ((read >> 16) & 0xffff) : read & 0xffff;
+    if (_IndexFormat16bit)
+    {
+        // 2 byte indices, Load() grabs 4 bytes at a time (4 byte aligned) so need to do some unpacking
+        uint entryIndex = i >> 1u;
+        uint entryOffset = i & 1u;
+        uint read = indexBuffer.Load(entryIndex << 2);
+        return entryOffset == 1u ? ((read >> 16) & 0xffff) : read & 0xffff;
+    }
+    else
+        // 4 byte indices
+        return indexBuffer.Load(i << 2);
 }
 
 float _VertexBufferStride;

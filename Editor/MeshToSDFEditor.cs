@@ -105,9 +105,6 @@ public class MeshToSDFEditor : Editor
         if (mesh.GetTopology(0) != MeshTopology.Triangles)
             EditorGUILayout.HelpBox("Only triangular topology meshes supported (MeshTopology.Triangles).", MessageType.Error);
 
-        if (mesh.indexFormat != UnityEngine.Rendering.IndexFormat.UInt16)
-            EditorGUILayout.HelpBox("Only 16 bit indices supported. The mesh is probably way too large.", MessageType.Error);
-
         if (mesh.GetIndexCount(0) > 3 * 10000)
             EditorGUILayout.HelpBox("This looks like a large mesh. For best performance and a smoother SDF, use a proxy mesh of under 10k triangles.", MessageType.Warning);
 

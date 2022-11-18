@@ -86,6 +86,7 @@ If you need signed distance or just need a limited shell around your surface, us
     GraphicsBuffer m_IndexBuffer = null;
     int m_VertexBufferStride;
     int m_VertexBufferPosAttributeOffset;
+    IndexFormat m_IndexFormat;
     CommandBuffer m_CommandBuffer = null;
 
     const int kThreadCount = 64;
@@ -112,6 +113,7 @@ If you need signed distance or just need a limited shell around your surface, us
         internal static int g_CellSize = Shader.PropertyToID("g_CellSize");
         internal static int g_VertexBuffer = Shader.PropertyToID("g_VertexBuffer");
         internal static int g_IndexBuffer = Shader.PropertyToID("g_IndexBuffer");
+        internal static int _IndexFormat16bit = Shader.PropertyToID("_IndexFormat16bit");
         internal static int _VertexBufferStride = Shader.PropertyToID("_VertexBufferStride");
         internal static int _VertexBufferPosAttributeOffset = Shader.PropertyToID("_VertexBufferPosAttributeOffset");
         internal static int _JumpOffset = Shader.PropertyToID("_JumpOffset");
@@ -278,6 +280,7 @@ If you need signed distance or just need a limited shell around your surface, us
         
         cmd.SetComputeBufferParam(m_Compute, kernel, Uniforms.g_VertexBuffer, m_VertexBuffer);
         cmd.SetComputeBufferParam(m_Compute, kernel, Uniforms.g_IndexBuffer, m_IndexBuffer);
+        cmd.SetComputeIntParam(m_Compute, Uniforms._IndexFormat16bit, m_IndexFormat == IndexFormat.UInt16 ? 1 : 0);
         cmd.SetComputeFloatParam(m_Compute, Uniforms._VertexBufferStride, m_VertexBufferStride);
         cmd.SetComputeFloatParam(m_Compute, Uniforms._VertexBufferPosAttributeOffset, m_VertexBufferPosAttributeOffset);
         
@@ -392,11 +395,6 @@ If you need signed distance or just need a limited shell around your surface, us
             Debug.LogError("MeshToSDF needs a mesh with triangle topology.", this);
             return false;
         }
-        if (mesh.indexFormat != IndexFormat.UInt16)
-        {
-            Debug.LogError("MeshToSDF needs a mesh with 16 bit index format (mesh probably too big).", this);
-            return false;
-        }
 
         int stream = mesh.GetVertexAttributeStream(VertexAttribute.Position);
         if (stream < 0)
@@ -405,6 +403,7 @@ If you need signed distance or just need a limited shell around your surface, us
             return false;
         }
 
+        m_IndexFormat = mesh.indexFormat;
         m_VertexBufferStride = mesh.GetVertexBufferStride(stream);
         m_VertexBufferPosAttributeOffset = mesh.GetVertexAttributeOffset(VertexAttribute.Position);
         m_VertexBuffer = m_SkinnedMeshRenderer != null ? m_SkinnedMeshRenderer.GetVertexBuffer() : mesh.GetVertexBuffer(stream);
