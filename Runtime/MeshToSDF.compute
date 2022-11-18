@@ -18,29 +18,30 @@ float _Offset;
 
 #define THREAD_GROUP_SIZE 64
 
+ByteAddressBuffer _VertexBuffer;
+ByteAddressBuffer _IndexBuffer;
 bool _IndexFormat16bit;
+int _VertexBufferStride;
+int _VertexBufferPosAttributeOffset;
 
-uint GetIndex(ByteAddressBuffer indexBuffer, uint i)
+uint GetIndex(uint i)
 {
     if (_IndexFormat16bit)
     {
         // 2 byte indices, Load() grabs 4 bytes at a time (4 byte aligned) so need to do some unpacking
         uint entryIndex = i >> 1u;
         uint entryOffset = i & 1u;
-        uint read = indexBuffer.Load(entryIndex << 2);
+        uint read = _IndexBuffer.Load(entryIndex << 2);
         return entryOffset == 1u ? ((read >> 16) & 0xffff) : read & 0xffff;
     }
     else
         // 4 byte indices
-        return indexBuffer.Load(i << 2);
+        return _IndexBuffer.Load(i << 2);
 }
 
-float _VertexBufferStride;
-float _VertexBufferPosAttributeOffset;
-
-float3 GetPos(ByteAddressBuffer vertexBuffer, uint i)
+float3 GetPos(uint i)
 {
-    return asfloat(vertexBuffer.Load3(i * _VertexBufferStride + _VertexBufferPosAttributeOffset));
+    return asfloat(_VertexBuffer.Load3(i * _VertexBufferStride + _VertexBufferPosAttributeOffset));
 }
 
 #include "../_External/TressFXSDF.hlsl"

@@ -111,8 +111,8 @@ If you need signed distance or just need a limited shell around your surface, us
         internal static int g_NumCellsZ = Shader.PropertyToID("g_NumCellsZ");
         internal static int g_Origin = Shader.PropertyToID("g_Origin");
         internal static int g_CellSize = Shader.PropertyToID("g_CellSize");
-        internal static int g_VertexBuffer = Shader.PropertyToID("g_VertexBuffer");
-        internal static int g_IndexBuffer = Shader.PropertyToID("g_IndexBuffer");
+        internal static int _VertexBuffer = Shader.PropertyToID("_VertexBuffer");
+        internal static int _IndexBuffer = Shader.PropertyToID("_IndexBuffer");
         internal static int _IndexFormat16bit = Shader.PropertyToID("_IndexFormat16bit");
         internal static int _VertexBufferStride = Shader.PropertyToID("_VertexBufferStride");
         internal static int _VertexBufferPosAttributeOffset = Shader.PropertyToID("_VertexBufferPosAttributeOffset");
@@ -278,11 +278,11 @@ If you need signed distance or just need a limited shell around your surface, us
         cmd.BeginSample(Labels.SplatTriangleDistances);
         kernel = m_DistanceMode == DistanceMode.Signed && m_FloodMode == FloodMode.Linear ? m_SplatTriangleDistancesSignedKernel : m_SplatTriangleDistancesUnsignedKernel;
         
-        cmd.SetComputeBufferParam(m_Compute, kernel, Uniforms.g_VertexBuffer, m_VertexBuffer);
-        cmd.SetComputeBufferParam(m_Compute, kernel, Uniforms.g_IndexBuffer, m_IndexBuffer);
+        cmd.SetComputeBufferParam(m_Compute, kernel, Uniforms._VertexBuffer, m_VertexBuffer);
+        cmd.SetComputeBufferParam(m_Compute, kernel, Uniforms._IndexBuffer, m_IndexBuffer);
         cmd.SetComputeIntParam(m_Compute, Uniforms._IndexFormat16bit, m_IndexFormat == IndexFormat.UInt16 ? 1 : 0);
-        cmd.SetComputeFloatParam(m_Compute, Uniforms._VertexBufferStride, m_VertexBufferStride);
-        cmd.SetComputeFloatParam(m_Compute, Uniforms._VertexBufferPosAttributeOffset, m_VertexBufferPosAttributeOffset);
+        cmd.SetComputeIntParam(m_Compute, Uniforms._VertexBufferStride, m_VertexBufferStride);
+        cmd.SetComputeIntParam(m_Compute, Uniforms._VertexBufferPosAttributeOffset, m_VertexBufferPosAttributeOffset);
         
         cmd.SetComputeBufferParam(m_Compute, kernel, Uniforms.g_SignedDistanceField, bufferPing);
         cmd.DispatchCompute(m_Compute, kernel, m_ThreadGroupCountTriangles, 1, 1);

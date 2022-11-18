@@ -32,9 +32,6 @@ int g_NumCellsZ;
 #define MARGIN g_CellSize
 #define GRID_MARGIN int3(1, 1, 1)
 
-ByteAddressBuffer g_VertexBuffer;
-ByteAddressBuffer g_IndexBuffer;
-
 //Actually contains floats; make sure to use asfloat() when accessing. uint is used to allow atomics.
 RWStructuredBuffer<uint> g_SignedDistanceField;
 
@@ -217,13 +214,9 @@ void SplatTriangleDistances(uint GIndex : SV_GroupIndex, uint3 GId : SV_GroupID,
 
 //demo-team-begin
 	triangleIndex *= 3;
-	uint index0 = GetIndex(g_IndexBuffer, triangleIndex + 0);
-	uint index1 = GetIndex(g_IndexBuffer, triangleIndex + 1);
-	uint index2 = GetIndex(g_IndexBuffer, triangleIndex + 2);
-
-	float3 tri0 = GetPos(g_VertexBuffer, index0);
-	float3 tri1 = GetPos(g_VertexBuffer, index1);
-	float3 tri2 = GetPos(g_VertexBuffer, index2);
+	float3 tri0 = GetPos(GetIndex(triangleIndex + 0));
+	float3 tri1 = GetPos(GetIndex(triangleIndex + 1));
+	float3 tri2 = GetPos(GetIndex(triangleIndex + 2));
 
 	tri0 = mul(_WorldToLocal, float4(tri0, 1)).xyz;
 	tri1 = mul(_WorldToLocal, float4(tri1, 1)).xyz;
