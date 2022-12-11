@@ -64,7 +64,7 @@ public class SDFTextureEditor : Editor
 
         foreach(var offset in offsets)
         {
-            Vector3 handlePos = dir * (s_Slice - 0.5f) * bounds.size[axis] + offset;
+            Vector3 handlePos = (s_Slice - 0.5f) * bounds.size[axis] * dir + offset;
             float handleSize = new Vector2(bounds.size[(axis + 1)%3], bounds.size[(axis + 2)%3]).magnitude * 0.03f;
             handlePos = Handles.Slider(handlePos, dir, handleSize, Handles.CubeHandleCap, snap:-1);
             s_Slice = Mathf.Clamp01(handlePos[axis]/bounds.size[axis] + 0.5f);
@@ -142,7 +142,7 @@ public class SDFTextureEditor : Editor
             case SDFTexture.Mode.Dynamic:
                 EditorGUILayout.PropertyField(m_Size);
 
-                Rect GetColumnRect(Rect totalRect, int column)
+                static Rect GetColumnRect(Rect totalRect, int column)
                 {
                     Rect rect = totalRect;
                     rect.xMin += (totalRect.width - 8) * (column / 3f) + column * 4;
