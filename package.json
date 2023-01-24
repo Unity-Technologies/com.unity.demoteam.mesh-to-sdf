@@ -1,7 +1,7 @@
 {
     "name": "com.unity.demoteam.mesh-to-sdf",
     "displayName": "Demo Team Mesh to SDF",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"unity": "2021.2",
 	"description": "A real-time SDF generator. Use a Mesh or a dynamically deforming SkinnedMesh as input to generate a 3D SDF texture.",
 	"dependencies": {
