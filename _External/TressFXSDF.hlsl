@@ -74,13 +74,9 @@ float3 GetSdfCellPosition(int3 gridPosition)
 [numthreads(THREAD_GROUP_SIZE, 1, 1)]
 void Initialize(uint GIndex : SV_GroupIndex, uint3 GId : SV_GroupID, uint3 DTid : SV_DispatchThreadID)
 {
-	int numSdfCells = g_NumCellsX * g_NumCellsY * g_NumCellsZ;
-
-    int sdfCellIndex = GetVoxelIndex(GIndex, GId);
-    if(sdfCellIndex >= numSdfCells)
+	int sdfCellIndex = GetVoxelIndex(GIndex, GId);
+    if(sdfCellIndex >= _VoxelResolution.w)
         return;
-	
-    float3 cellPos = GetSdfCellPosition(GetLocalCellPositionFromIndex(sdfCellIndex, int3(g_NumCellsX, g_NumCellsY, g_NumCellsZ)));
     
     g_SignedDistanceField[sdfCellIndex] = FloatFlip3(INITIAL_DISTANCE);
 }
@@ -89,10 +85,8 @@ void Initialize(uint GIndex : SV_GroupIndex, uint3 GId : SV_GroupID, uint3 DTid 
 [numthreads(THREAD_GROUP_SIZE, 1, 1)]
 void Finalize(uint GIndex : SV_GroupIndex, uint3 GId : SV_GroupID, uint3 DTid : SV_DispatchThreadID)
 {
-	int numSdfCells = g_NumCellsX * g_NumCellsY * g_NumCellsZ;
-
 	int sdfCellIndex = GetVoxelIndex(GIndex, GId);
-	if (sdfCellIndex >= numSdfCells)
+	if (sdfCellIndex >= _VoxelResolution.w)
         return;
 
 	uint distance = g_SignedDistanceField[sdfCellIndex];
