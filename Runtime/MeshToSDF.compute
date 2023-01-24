@@ -23,6 +23,7 @@ ByteAddressBuffer _IndexBuffer;
 bool _IndexFormat16bit;
 int _VertexBufferStride;
 int _VertexBufferPosAttributeOffset;
+int _DispatchSizeX;
 
 uint GetIndex(uint i)
 {
@@ -42,6 +43,11 @@ uint GetIndex(uint i)
 float3 GetPos(uint i)
 {
     return asfloat(_VertexBuffer.Load3(i * _VertexBufferStride + _VertexBufferPosAttributeOffset));
+}
+
+int GetVoxelIndex(uint GIndex, uint3 GId)
+{
+    return (GId.x + GId.y * _DispatchSizeX) * THREAD_GROUP_SIZE + GIndex;
 }
 
 #include "../_External/TressFXSDF.hlsl"
@@ -91,7 +97,7 @@ int GetVoxelJump(int3 voxelCoords)
 [numthreads(THREAD_GROUP_SIZE, 1, 1)]
 void BufferToTexture(uint GIndex : SV_GroupIndex, uint3 GId : SV_GroupID, uint3 DTid : SV_DispatchThreadID)
 {
-    int voxelIndex = GId.x * THREAD_GROUP_SIZE + GIndex;
+    int voxelIndex = GetVoxelIndex(GIndex, GId);
     if(voxelIndex >= _VoxelResolution.w)
         return;
 
@@ -129,7 +135,7 @@ float MinDist(float currentDist, float adjacentDist, float step)
 [numthreads(THREAD_GROUP_SIZE, 1, 1)]
 void LinearFloodStep(uint GIndex : SV_GroupIndex, uint3 GId : SV_GroupID, uint3 DTid : SV_DispatchThreadID)
 {
-    int voxelIndex = GId.x * THREAD_GROUP_SIZE + GIndex;
+    int voxelIndex = GetVoxelIndex(GIndex, GId);
     if(voxelIndex >= _VoxelResolution.w)
         return;
 
@@ -197,7 +203,7 @@ void LinearFloodStep(uint GIndex : SV_GroupIndex, uint3 GId : SV_GroupID, uint3 
 [numthreads(THREAD_GROUP_SIZE, 1, 1)]
 void JumpFloodInitialize(uint GIndex : SV_GroupIndex, uint3 GId : SV_GroupID, uint3 DTid : SV_DispatchThreadID)
 {
-    int voxelIndex = GId.x * THREAD_GROUP_SIZE + GIndex;
+    int voxelIndex = GetVoxelIndex(GIndex, GId);
     if(voxelIndex >= _VoxelResolution.w)
         return;
 
@@ -228,7 +234,7 @@ int3 _JumpOffsetInterleaved;
 [numthreads(THREAD_GROUP_SIZE, 1, 1)]
 void JumpFloodStep(uint GIndex : SV_GroupIndex, uint3 GId : SV_GroupID, uint3 DTid : SV_DispatchThreadID)
 {
-    int voxelIndex = GId.x * THREAD_GROUP_SIZE + GIndex;
+    int voxelIndex = GetVoxelIndex(GIndex, GId);
     if(voxelIndex >= _VoxelResolution.w)
         return;
 
@@ -254,7 +260,7 @@ void JumpFloodStep(uint GIndex : SV_GroupIndex, uint3 GId : SV_GroupID, uint3 DT
 [numthreads(THREAD_GROUP_SIZE, 1, 1)]
 void JumpFloodFinalize(uint GIndex : SV_GroupIndex, uint3 GId : SV_GroupID, uint3 DTid : SV_DispatchThreadID)
 {
-    int voxelIndex = GId.x * THREAD_GROUP_SIZE + GIndex;
+    int voxelIndex = GetVoxelIndex(GIndex, GId);
     if(voxelIndex >= _VoxelResolution.w)
         return;
 

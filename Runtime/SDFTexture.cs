@@ -18,6 +18,11 @@ public class SDFTexture : MonoBehaviour
     public Vector3 size { get { return m_Size; } set { m_Size = value; ValidateSize(); } }
     public int resolution { get { return m_Resolution; } set { m_Resolution = value; ValidateResolution(); } }
 
+    // Max 3D texture resolution in any dimension is 2048
+    int kMaxResolution = 2048;
+    // Max compute buffer size
+    int kMaxVoxelCount = 1024 * 1024 * 1024 / 2;
+
     public enum Mode
     {
         None,
@@ -52,8 +57,8 @@ public class SDFTexture : MonoBehaviour
             res.x = m_Resolution;
             res.y = (int)(m_Resolution * m_Size.y / m_Size.x);
             res.z = (int)(m_Resolution * m_Size.z / m_Size.x);
-            res.y = Mathf.Clamp(res.y, 1, 512);
-            res.z = Mathf.Clamp(res.z, 1, 512);
+            res.y = Mathf.Clamp(res.y, 1, kMaxResolution);
+            res.z = Mathf.Clamp(res.z, 1, kMaxResolution);
             return res;
         }
     }
@@ -111,8 +116,8 @@ public class SDFTexture : MonoBehaviour
         {
             // res * (res * size.y / size.x) * (res * size.z / size.x) = voxel_count
             // res^3 = voxel_count * size.x * size.x / (size.y * size.z)
-            int maxResolution = (int)(Mathf.Pow(MeshToSDF.maxVoxelCount * m_Size.x * m_Size.x / (m_Size.y * m_Size.z), 1.0f/3.0f));
-            return Mathf.Clamp(maxResolution, 1, 512);
+            int maxResolution = (int)(Mathf.Pow(kMaxVoxelCount * m_Size.x * m_Size.x / (m_Size.y * m_Size.z), 1.0f/3.0f));
+            return Mathf.Clamp(maxResolution, 1, kMaxResolution);
         }
     }
 

@@ -164,6 +164,8 @@ public class SDFTextureEditor : Editor
 
                 if (sdftexture.resolution >= sdftexture.maxResolution)
                     EditorGUILayout.HelpBox("Maximum voxel count reached. Recommended resolution below 64^3.", MessageType.Info);
+                else if (voxelRes.x * voxelRes.y * voxelRes.z >= 64 * 64 * 64 * 2)
+                    EditorGUILayout.HelpBox("High resolution might lead to poor performance. Recommended resolution below 64^3.", MessageType.Info);
                 break;
         }
 

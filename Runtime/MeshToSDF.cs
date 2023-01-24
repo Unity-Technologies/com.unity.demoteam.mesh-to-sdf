@@ -90,8 +90,8 @@ If you need signed distance or just need a limited shell around your surface, us
     CommandBuffer m_CommandBuffer = null;
 
     const int kThreadCount = 64;
+    const int kMaxThreadGroupCount = 65535;
     int m_ThreadGroupCountTriangles;
-    public static int maxVoxelCount { get { int maxThreadGroupCount = 65535; return maxThreadGroupCount * kThreadCount; }}
 
     static class Uniforms
     {
@@ -118,6 +118,7 @@ If you need signed distance or just need a limited shell around your surface, us
         internal static int _VertexBufferPosAttributeOffset = Shader.PropertyToID("_VertexBufferPosAttributeOffset");
         internal static int _JumpOffset = Shader.PropertyToID("_JumpOffset");
         internal static int _JumpOffsetInterleaved = Shader.PropertyToID("_JumpOffsetInterleaved");
+        internal static int _DispatchSizeX = Shader.PropertyToID("_DispatchSizeX");
     }
 
     static class Labels
@@ -226,6 +227,17 @@ If you need signed distance or just need a limited shell around your surface, us
         float voxelSize = m_SDFTexture.voxelSize;
         int threadGroupCountVoxels = (int)Mathf.Ceil((float)voxelCount / (float) kThreadCount);
 
+        int dispatchSizeX = threadGroupCountVoxels;
+        int dispatchSizeY = 1;
+        // Dispatch size in any dimension can't exceed kMaxThreadGroupCount, so when we're above that limit
+        // start dispatching groups in two dimensions.
+        if (threadGroupCountVoxels > kMaxThreadGroupCount)
+        {
+            // Make it roughly square-ish as a heuristic to avoid too many unused at the end
+            dispatchSizeX = Mathf.CeilToInt(Mathf.Sqrt(threadGroupCountVoxels));
+            dispatchSizeY = Mathf.CeilToInt((float)threadGroupCountVoxels / dispatchSizeX);
+        }
+
         CreateComputeBuffer(ref m_SDFBuffer, voxelCount, sizeof(float));
         CreateComputeBuffer(ref m_SDFBufferBis, voxelCount, sizeof(float));
         if (m_FloodMode == FloodMode.Jump)
@@ -247,6 +259,7 @@ If you need signed distance or just need a limited shell around your surface, us
             return;
         }
 
+        cmd.SetComputeIntParam(m_Compute, Uniforms._DispatchSizeX, dispatchSizeX);
         cmd.SetComputeVectorParam(m_Compute, Uniforms.g_Origin, voxelBounds.center - voxelBounds.extents);
         cmd.SetComputeFloatParam(m_Compute, Uniforms.g_CellSize, voxelSize);
         cmd.SetComputeIntParam(m_Compute, Uniforms.g_NumCellsX, voxelResolution.x);
@@ -272,7 +285,7 @@ If you need signed distance or just need a limited shell around your surface, us
         cmd.BeginSample(Labels.Initialize);
         int kernel = m_InitializeKernel;
         cmd.SetComputeBufferParam(m_Compute, kernel, Uniforms.g_SignedDistanceField, bufferPing);
-        cmd.DispatchCompute(m_Compute, kernel, threadGroupCountVoxels, 1, 1);
+        cmd.DispatchCompute(m_Compute, kernel, dispatchSizeX, dispatchSizeY, 1);
 		cmd.EndSample(Labels.Initialize);
 
         cmd.BeginSample(Labels.SplatTriangleDistances);
@@ -291,7 +304,7 @@ If you need signed distance or just need a limited shell around your surface, us
         cmd.BeginSample(Labels.Finalize);
         kernel = m_FinalizeKernel;
         cmd.SetComputeBufferParam(m_Compute, kernel, Uniforms.g_SignedDistanceField, bufferPing);
-        cmd.DispatchCompute(m_Compute, kernel, threadGroupCountVoxels, 1, 1);
+        cmd.DispatchCompute(m_Compute, kernel, dispatchSizeX, dispatchSizeY, 1);
 		cmd.EndSample(Labels.Finalize);
 
         if (m_FloodMode == FloodMode.Linear)
@@ -302,7 +315,7 @@ If you need signed distance or just need a limited shell around your surface, us
             {
                 cmd.SetComputeBufferParam(m_Compute, kernel, Uniforms._SDFBuffer, i%2 == 0 ? bufferPing : bufferPong);
                 cmd.SetComputeBufferParam(m_Compute, kernel, Uniforms._SDFBufferRW, i%2 == 0 ? bufferPong : bufferPing);
-                cmd.DispatchCompute(m_Compute, kernel, threadGroupCountVoxels, 1, 1);
+                cmd.DispatchCompute(m_Compute, kernel, dispatchSizeX, dispatchSizeY, 1);
             }
             cmd.EndSample(Labels.LinearFloodStep);
         }
@@ -312,7 +325,7 @@ If you need signed distance or just need a limited shell around your surface, us
             kernel = m_JumpFloodInitialize;
             cmd.SetComputeBufferParam(m_Compute, kernel, Uniforms._SDFBuffer, bufferPing);
             cmd.SetComputeBufferParam(m_Compute, kernel, Uniforms._JumpBufferRW, m_JumpBuffer);
-            cmd.DispatchCompute(m_Compute, kernel, threadGroupCountVoxels, 1, 1);
+            cmd.DispatchCompute(m_Compute, kernel, dispatchSizeX, dispatchSizeY, 1);
             cmd.EndSample(Labels.JumpFloodInitialize);
 
             int maxDim = Mathf.Max(Mathf.Max(voxelResolution.x, voxelResolution.y), voxelResolution.z);
@@ -334,7 +347,7 @@ If you need signed distance or just need a limited shell around your surface, us
                         cmd.SetComputeIntParams(m_Compute, Uniforms._JumpOffsetInterleaved, jumpOffsetInterleaved);
                         cmd.SetComputeBufferParam(m_Compute, kernel, Uniforms._JumpBuffer, bufferFlip ? m_JumpBuffer : m_JumpBufferBis);
                         cmd.SetComputeBufferParam(m_Compute, kernel, Uniforms._JumpBufferRW, bufferFlip ? m_JumpBufferBis : m_JumpBuffer);
-                        cmd.DispatchCompute(m_Compute, kernel, threadGroupCountVoxels, 1, 1);    
+                        cmd.DispatchCompute(m_Compute, kernel, dispatchSizeX, dispatchSizeY, 1);
                         bufferFlip = !bufferFlip;
                     }
                 }
@@ -344,7 +357,7 @@ If you need signed distance or just need a limited shell around your surface, us
                     cmd.SetComputeIntParam(m_Compute, Uniforms._JumpOffset, jumpOffset);
                     cmd.SetComputeBufferParam(m_Compute, kernel, Uniforms._JumpBuffer, bufferFlip ? m_JumpBuffer : m_JumpBufferBis);
                     cmd.SetComputeBufferParam(m_Compute, kernel, Uniforms._JumpBufferRW, bufferFlip ? m_JumpBufferBis : m_JumpBuffer);
-                    cmd.DispatchCompute(m_Compute, kernel, threadGroupCountVoxels, 1, 1);
+                    cmd.DispatchCompute(m_Compute, kernel, dispatchSizeX, dispatchSizeY, 1);
                     bufferFlip = !bufferFlip;
                 }
             }
@@ -356,7 +369,7 @@ If you need signed distance or just need a limited shell around your surface, us
             cmd.SetComputeBufferParam(m_Compute, kernel, Uniforms._SDFBuffer, m_SDFBufferBis);
             cmd.SetComputeBufferParam(m_Compute, kernel, Uniforms._SDFBufferRW, m_SDFBuffer);
             cmd.SetComputeFloatParam(m_Compute, Uniforms.g_CellSize, voxelSize);
-            cmd.DispatchCompute(m_Compute, kernel, threadGroupCountVoxels, 1, 1);
+            cmd.DispatchCompute(m_Compute, kernel, dispatchSizeX, dispatchSizeY, 1);
             cmd.EndSample(Labels.JumpFloodFinalize);
         }
 
@@ -365,7 +378,7 @@ If you need signed distance or just need a limited shell around your surface, us
         cmd.SetComputeBufferParam(m_Compute, kernel, Uniforms._SDFBuffer, m_SDFBuffer);
         cmd.SetComputeTextureParam(m_Compute, kernel, Uniforms._SDF, m_SDFTexture.sdf);
         cmd.SetComputeFloatParam(m_Compute, Uniforms._Offset, m_DistanceMode == DistanceMode.Signed && m_FloodMode != FloodMode.Jump ? m_Offset : 0);
-        cmd.DispatchCompute(m_Compute, kernel, threadGroupCountVoxels, 1, 1);
+        cmd.DispatchCompute(m_Compute, kernel, dispatchSizeX, dispatchSizeY, 1);
 		cmd.EndSample(Labels.BufferToTexture);
     }
 

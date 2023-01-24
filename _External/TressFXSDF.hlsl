@@ -76,7 +76,7 @@ void Initialize(uint GIndex : SV_GroupIndex, uint3 GId : SV_GroupID, uint3 DTid 
 {
 	int numSdfCells = g_NumCellsX * g_NumCellsY * g_NumCellsZ;
 
-    int sdfCellIndex = GId.x * THREAD_GROUP_SIZE + GIndex;
+    int sdfCellIndex = GetVoxelIndex(GIndex, GId);
     if(sdfCellIndex >= numSdfCells)
         return;
 	
@@ -91,7 +91,7 @@ void Finalize(uint GIndex : SV_GroupIndex, uint3 GId : SV_GroupID, uint3 DTid : 
 {
 	int numSdfCells = g_NumCellsX * g_NumCellsY * g_NumCellsZ;
 
-	int sdfCellIndex = GId.x * THREAD_GROUP_SIZE + GIndex;
+	int sdfCellIndex = GetVoxelIndex(GIndex, GId);
 	if (sdfCellIndex >= numSdfCells)
         return;
 
