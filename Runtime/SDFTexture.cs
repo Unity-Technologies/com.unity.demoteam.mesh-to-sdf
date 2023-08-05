@@ -166,6 +166,11 @@ public class SDFTexture : MonoBehaviour
 
         if (rt.wrapMode != TextureWrapMode.Clamp)
             rt.wrapMode = TextureWrapMode.Clamp;
+        
+        if (!rt.IsCreated())
+        {
+            rt.Create();
+        }
     }
 
     public void OnValidate()
