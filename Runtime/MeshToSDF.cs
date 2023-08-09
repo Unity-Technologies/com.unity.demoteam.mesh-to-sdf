@@ -416,6 +416,9 @@ If you need signed distance or just need a limited shell around your surface, us
             return false;
         }
 
+        ReleaseGraphicsBuffer(ref m_VertexBuffer);
+        ReleaseGraphicsBuffer(ref m_IndexBuffer);
+        
         m_IndexFormat = mesh.indexFormat;
         m_VertexBufferStride = mesh.GetVertexBufferStride(stream);
         m_VertexBufferPosAttributeOffset = mesh.GetVertexAttributeOffset(VertexAttribute.Position);
