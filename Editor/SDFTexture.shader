@@ -32,6 +32,8 @@
 
     #define COLOR_POS 1
     #define COLOR_NEG float3(0.72, 0, 1)
+
+    int _HighContrast;
     
     v2f vert(appdata v)
     {
@@ -51,7 +53,15 @@
             uvw = float3(i.texcoord.x, _Z, i.texcoord.y);
         
         float dist = tex3D(_SDF, uvw).r * _DistanceScale;
-        float3 color = dist > 0.0 ? dist * COLOR_POS : -dist * COLOR_NEG;
+        float3 color;
+        if(_HighContrast == 1)
+        {
+            color = dist > 0.0 ? float3(1, 1, 1) : float3(0, 0, 0);
+        }
+        else
+        {
+            color = dist > 0.0 ? dist * COLOR_POS : -dist * COLOR_NEG;
+        }
         return float4(color, 1);
     }
     ENDHLSL

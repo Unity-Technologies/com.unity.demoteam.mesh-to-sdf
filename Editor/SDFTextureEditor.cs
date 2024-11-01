@@ -11,6 +11,7 @@ public class SDFTextureEditor : Editor
     static Material s_Material;
     static float s_Slice = 0.5f; // [0, 1]
     static Axis s_Axis = Axis.X;
+    static bool s_HighContrast = false;
 
     SerializedProperty m_SDF;
     SerializedProperty m_Size;
@@ -22,6 +23,7 @@ public class SDFTextureEditor : Editor
         internal static int _Mode = Shader.PropertyToID("_Mode");
         internal static int _Axis = Shader.PropertyToID("_Axis");
         internal static int _DistanceScale = Shader.PropertyToID("_DistanceScale");
+        internal static int _HighContrast = Shader.PropertyToID("_HighContrast");
     }
 
     void OnEnable()
@@ -96,6 +98,7 @@ public class SDFTextureEditor : Editor
         s_Material.SetVector("_VoxelResolution", new Vector4(voxelResolution.x, voxelResolution.y, voxelResolution.z));
         s_Material.SetFloat(Uniforms._DistanceScale, distanceScale);
         s_Material.SetTexture("_SDF", sdf);
+        s_Material.SetInt(Uniforms._HighContrast, s_HighContrast ? 1 : 0);
 
         s_Material.SetPass(0);
         Graphics.DrawMeshNow(s_Quad, matrix);
@@ -183,6 +186,8 @@ public class SDFTextureEditor : Editor
             s_Slice = slice;
             SceneView.lastActiveSceneView?.Repaint();
         }
+
+        s_HighContrast = EditorGUILayout.Toggle(new GUIContent("High Contrast", "Draw SDF visualisation using high contrast colors."), s_HighContrast);
     }
 
     bool HasFrameBounds()
